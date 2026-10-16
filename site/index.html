@@ -1,0 +1,1379 @@
+<title>Priced In</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="What growth does each share price imply? Reverse DCFs for 19 exchanges and financial-data companies, checked against history and analysts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400..900&display=swap">
+<link rel="stylesheet" href="ds/bundle.css">
+<style>
+/* Layout: Rohan's banknote system on a data site. One hero carousel (In play) on the board,
+   then the gap plot and the board; company pages pair input sliders with live results. */
+:root {
+  --ground: #f4f6f7; --ground-raised: #ffffff; --ground-sunken: #e8ecef;
+  --ink: #13202d; --ink-soft: #4a5866; --rule: #d5dce1; --rule-strong: #74828e; --edge: #13202d14;
+  --prussian: #1e3f66; --prussian-strong: #152f4e; --prussian-tint: #dde6f0; --on-prussian: #ffffff;
+  --banknote: #2d5f50; --banknote-tint: #dbeae3; --oxblood: #8a2f2f; --oxblood-tint: #f4e1df;
+  --gilt: #967434; --gilt-tint: #f3ead8;
+  --field-prussian: #1e3f66; --field-banknote: #2d5f50; --field-oxblood: #6e2626; --field-graphite: #26313c;
+  --on-field: #ffffff; --scrim: #0c131ab8; --sheen: #ffffff24; --focus: var(--prussian);
+  --shadow-header: 0 1px 0 #13202d14, 0 12px 28px -20px #13202d4d;
+  --shadow-lift: 0 28px 56px -32px #13202d66;
+  --font-sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --space-7: 48px; --space-8: 64px; --space-9: 96px; --space-10: 144px;
+  --radius-sm: 8px; --radius-md: 16px; --radius-lg: 28px; --radius-xl: 40px; --radius-pill: 9999px;
+  --size-content: 1280px; --size-header: 72px; --size-control: 52px; --size-control-md: 44px; --size-chip: 40px; --size-segment: 48px;
+  --duration-instant: 100ms; --duration-quick: 160ms; --duration-base: 240ms; --duration-calm: 400ms; --duration-slow: 600ms;
+  --duration-scene: 900ms; --duration-dwell: 6000ms; --duration-stagger: 70ms; --duration-drift: 12000ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15); --ease-glide: cubic-bezier(0.65, 0, 0.35, 1); --ease-linear: linear;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0c131a; --ground-raised: #131c25; --ground-sunken: #080d12;
+    --ink: #e7ecf0; --ink-soft: #a1afbb; --rule: #233140; --rule-strong: #5e7080; --edge: #ffffff1a;
+    --prussian: #93b4e0; --prussian-strong: #b4cbea; --prussian-tint: #172a3f; --on-prussian: #0c131a;
+    --banknote: #84c4ae; --banknote-tint: #142b25; --oxblood: #e89c93; --oxblood-tint: #351819;
+    --gilt: #d7b778; --gilt-tint: #2e2614;
+    --shadow-header: 0 1px 0 #ffffff14, 0 12px 28px -16px #000000b3;
+    --shadow-lift: 0 28px 56px -28px #000000cc;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0c131a; --ground-raised: #131c25; --ground-sunken: #080d12;
+  --ink: #e7ecf0; --ink-soft: #a1afbb; --rule: #233140; --rule-strong: #5e7080; --edge: #ffffff1a;
+  --prussian: #93b4e0; --prussian-strong: #b4cbea; --prussian-tint: #172a3f; --on-prussian: #0c131a;
+  --banknote: #84c4ae; --banknote-tint: #142b25; --oxblood: #e89c93; --oxblood-tint: #351819;
+  --gilt: #d7b778; --gilt-tint: #2e2614;
+  --shadow-header: 0 1px 0 #ffffff14, 0 12px 28px -16px #000000b3;
+  --shadow-lift: 0 28px 56px -28px #000000cc;
+  color-scheme: dark;
+}
+
+html { background: var(--ground); }
+body { background: var(--ground); color: var(--ink); font: 400 16px/26px var(--font-sans); -webkit-font-smoothing: antialiased; }
+.rj-header { top: env(safe-area-inset-top, 0px); }
+.rj-header__inner { padding-left: max(16px, env(safe-area-inset-left, 0px)) !important; padding-right: max(16px, env(safe-area-inset-right, 0px)) !important; max-width: var(--size-content); margin: 0 auto; box-sizing: border-box; }
+@media (min-width: 768px) { .rj-header__inner { padding-left: max(32px, env(safe-area-inset-left, 0px)) !important; padding-right: max(32px, env(safe-area-inset-right, 0px)) !important; } }
+
+.wrap { max-width: var(--size-content); margin: 0 auto; box-sizing: border-box; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 768px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
+main { display: block; padding-block: var(--space-5) var(--space-9); }
+.section { margin-top: var(--space-9); }
+@media (min-width: 1024px) { .section { margin-top: var(--space-10); } }
+.section:first-child { margin-top: 0; }
+
+/* type */
+h1, h2, h3, h4, p { margin: 0; }
+.headline-1 { font: 600 72px/72px var(--font-sans); letter-spacing: -0.03em; text-wrap: balance; }
+.headline-2 { font: 600 48px/52px var(--font-sans); letter-spacing: -0.02em; text-wrap: balance; }
+.headline-3 { font: 600 36px/42px var(--font-sans); letter-spacing: -0.015em; text-wrap: balance; }
+.title { font: 600 24px/30px var(--font-sans); letter-spacing: -0.01em; text-wrap: balance; }
+.lead { font: 400 21px/32px var(--font-sans); letter-spacing: -0.005em; max-width: 34em; color: var(--ink); }
+.body { font: 400 16px/26px var(--font-sans); max-width: 65ch; }
+.small { font: 400 14px/22px var(--font-sans); color: var(--ink-soft); }
+.label { font: 600 15px/20px var(--font-sans); }
+.micro { font: 500 12px/16px var(--font-sans); letter-spacing: 0.01em; color: var(--ink-soft); }
+.soft { color: var(--ink-soft); }
+.num { font-variant-numeric: tabular-nums; }
+code, .code { font: 400 14px/22px var(--font-mono); }
+@media (max-width: 1023px) { .headline-1 { font-size: 48px; line-height: 52px; letter-spacing: -0.02em; } }
+@media (max-width: 719px) {
+  .headline-1 { font-size: 36px; line-height: 42px; letter-spacing: -0.015em; }
+  .headline-2 { font-size: 32px; line-height: 38px; letter-spacing: -0.015em; }
+  .headline-3 { font-size: 26px; line-height: 32px; }
+  .lead { font-size: 18px; line-height: 28px; }
+}
+a { color: var(--prussian); text-decoration: none; background-image: linear-gradient(currentColor, currentColor); background-size: 0% 1px; background-repeat: no-repeat; background-position: 0 100%; transition: background-size var(--duration-quick) var(--ease-standard); }
+a:hover { background-size: 100% 1px; }
+a.plain, a.row, .rj-btn, .rj-wordmark, .rj-panel, .rj-nav a, .rj-header__panel-link { background-image: none; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.stack-7 > * + * { margin-top: var(--space-7); }
+.intro { display: grid; gap: var(--space-4); margin-bottom: var(--space-7); }
+.eyebrow { font: 600 15px/20px var(--font-sans); color: var(--prussian); }
+
+/* verdict pills */
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--radius-sm); font: 500 12px/16px var(--font-sans); letter-spacing: 0.01em; white-space: nowrap; background: var(--ground-sunken); color: var(--ink); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-soft); }
+.pill--low { background: var(--banknote-tint); color: var(--banknote); }
+.pill--low::before { background: var(--banknote); }
+.pill--high { background: var(--oxblood-tint); color: var(--oxblood); }
+.pill--high::before { background: var(--oxblood); }
+.pill--deal::before { background: transparent; border: 1.5px solid var(--ink-soft); width: 5px; height: 5px; }
+.pill--right { background: var(--banknote-tint); color: var(--banknote); }
+.pill--right::before { background: var(--banknote); }
+.pill--wrong { background: var(--oxblood-tint); color: var(--oxblood); }
+.pill--wrong::before { background: var(--oxblood); }
+.flagnote { display: inline-flex; gap: 6px; align-items: center; font: 500 12px/16px var(--font-sans); color: var(--ink-soft); }
+.flagnote::before { content: ""; width: 6px; height: 6px; border-radius: 1px; background: var(--gilt); transform: rotate(45deg); }
+
+/* in play strip */
+.watch { display: grid; gap: var(--space-6); grid-template-columns: 1fr; margin-top: var(--space-7); }
+@media (min-width: 900px) { .watch { grid-template-columns: 2fr 1fr; } }
+.watch__list { display: grid; gap: 0; }
+.watch__item { display: grid; grid-template-columns: 64px 1fr auto; gap: var(--space-4); align-items: baseline; padding-block: var(--space-4); border-top: 1px solid var(--rule); }
+.watch__item:last-child { border-bottom: 1px solid var(--rule); }
+.watch__score { font: 600 15px/20px var(--font-sans); font-variant-numeric: tabular-nums; }
+.meter { position: relative; width: 72px; height: 4px; border-radius: 999px; background: var(--rule); align-self: center; }
+.meter > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--gilt); }
+.side { display: grid; gap: var(--space-4); align-content: start; }
+.side h3 { font: 600 15px/20px var(--font-sans); }
+
+/* gap plot */
+.plot { position: relative; min-width: 0; }
+.plot svg { display: block; overflow: visible; }
+.plot text { font-family: var(--font-sans); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-3); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font: 400 14px/22px var(--font-sans); color: var(--ink-soft); }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* board */
+.board-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-4); margin-block: var(--space-7) var(--space-5); }
+.board { display: grid; }
+.board__head, .row { display: grid; grid-template-columns: minmax(180px, 2.2fr) 1fr 0.9fr 0.9fr 1.5fr 1.1fr 120px; gap: var(--space-4); align-items: center; }
+.board__head { padding-block: var(--space-3); border-bottom: 1px solid var(--rule-strong); font: 500 12px/16px var(--font-sans); letter-spacing: 0.01em; color: var(--ink-soft); }
+.board__head .r, .row .r { text-align: right; }
+.row { padding-block: var(--space-4); border-bottom: 1px solid var(--rule); color: var(--ink); transition: background-color var(--duration-quick) var(--ease-standard); border-radius: 0; }
+.row:hover { background: var(--prussian-tint); }
+.row:active { transform: scale(0.995); }
+.row__name { display: grid; gap: 2px; min-width: 0; }
+.row__name b { font: 600 16px/22px var(--font-sans); }
+.row__name span { font: 500 12px/16px var(--font-sans); color: var(--ink-soft); letter-spacing: 0.01em; }
+.row .val { font: 400 16px/22px var(--font-sans); font-variant-numeric: tabular-nums; }
+.row .val small { display: block; font: 400 12px/16px var(--font-sans); color: var(--ink-soft); }
+.gapbar { position: relative; height: 22px; }
+.gapbar__axis { position: absolute; top: 10px; left: 0; right: 0; height: 2px; background: var(--rule); }
+.gapbar__band { position: absolute; top: 4px; height: 14px; background: var(--ground-sunken); border-radius: 3px; }
+.gapbar__zero { position: absolute; top: 2px; width: 1px; height: 18px; background: var(--rule-strong); }
+.gapbar__bar { position: absolute; top: 7px; height: 8px; border-radius: 2px; }
+.gapcell { display: grid; grid-template-columns: 1fr 64px; gap: var(--space-3); align-items: center; }
+.gapcell .val { text-align: right; }
+.spark { display: block; }
+@media (max-width: 899px) {
+  .board__head { display: none; }
+  .row { grid-template-columns: 1fr auto; grid-template-areas: "name verdict" "nums nums" "gap gap"; row-gap: var(--space-3); }
+  .row > .c-name { grid-area: name; } .row > .c-verdict { grid-area: verdict; justify-self: end; }
+  .row > .c-nums { grid-area: nums; } .row > .c-gap { grid-area: gap; }
+  .row > .c-price, .row > .c-implied, .row > .c-anchor, .row > .c-spark { display: none; }
+}
+.c-nums { display: none; }
+@media (max-width: 899px) { .c-nums { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); font: 400 14px/22px var(--font-sans); font-variant-numeric: tabular-nums; color: var(--ink-soft); } .c-nums b { color: var(--ink); font-weight: 600; } }
+
+.endpanels { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
+@media (min-width: 768px) { .endpanels { grid-template-columns: repeat(3, 1fr); } }
+
+/* company */
+.crumbs { display: flex; flex-wrap: wrap; gap: var(--space-4); justify-content: space-between; align-items: center; margin-bottom: var(--space-6); }
+.co-head { display: grid; gap: var(--space-4); }
+.co-meta { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; }
+.notice { display: grid; gap: var(--space-1); padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); background: var(--gilt-tint); color: var(--ink); max-width: 65ch; }
+.notice b { font-weight: 600; }
+.figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-5); margin-top: var(--space-7); }
+@media (min-width: 768px) { .figs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .figs { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.fig { display: grid; gap: 2px; align-content: start; padding-top: var(--space-3); border-top: 1px solid var(--rule); }
+.fig dt { font: 500 12px/16px var(--font-sans); color: var(--ink-soft); letter-spacing: 0.01em; }
+.fig dd { margin: 0; font: 600 28px/34px var(--font-sans); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.fig small { font: 400 12px/16px var(--font-sans); color: var(--ink-soft); }
+.lab { display: grid; gap: var(--space-6); grid-template-columns: 1fr; margin-top: var(--space-6); }
+@media (min-width: 1024px) { .lab { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } }
+.sliders { display: grid; gap: var(--space-6) var(--space-6); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .sliders { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.slider { display: grid; gap: var(--space-2); min-width: 0; }
+.slider__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+.slider__head label { font: 600 15px/20px var(--font-sans); }
+.slider__value { font: 600 24px/30px var(--font-sans); font-variant-numeric: tabular-nums; }
+.slider__track { position: relative; height: 40px; }
+.slider__rail { position: absolute; left: 10px; right: 10px; top: 18px; height: 4px; border-radius: 999px; background: var(--rule); }
+.slider__zone { position: absolute; top: 14px; height: 12px; border-radius: 999px; background: var(--prussian-tint); }
+.slider__notch { position: absolute; top: 8px; width: 3px; height: 24px; margin-left: -1.5px; border-radius: 2px; background: var(--gilt); }
+.slider input[type=range] { position: absolute; inset: 0; width: 100%; height: 40px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.slider input[type=range]::-webkit-slider-runnable-track { height: 40px; background: transparent; }
+.slider input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: 10px; border-radius: 50%; background: var(--prussian); border: 3px solid var(--ground); box-shadow: 0 0 0 1px var(--prussian); transition: transform var(--duration-instant) var(--ease-standard); }
+.slider input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
+.slider input[type=range]::-moz-range-track { height: 40px; background: transparent; }
+.slider input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--prussian); border: 3px solid var(--ground); box-shadow: 0 0 0 1px var(--prussian); }
+.slider input[type=range]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.slider__scale { display: flex; justify-content: space-between; font: 400 12px/16px var(--font-sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.slider__rec { display: flex; align-items: center; gap: 8px; font: 400 13px/18px var(--font-sans); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.slider__key { width: 3px; height: 14px; border-radius: 2px; background: var(--gilt); flex: none; }
+.slider details { font: 400 14px/22px var(--font-sans); color: var(--ink-soft); }
+.mini { display: none; }
+@media (max-width: 1023px) {
+  .mini { display: flex; flex-wrap: wrap; gap: 4px 16px; position: sticky; bottom: env(safe-area-inset-bottom, 0px); z-index: 5; margin-top: var(--space-5); padding: 12px 16px; border-radius: var(--radius-md); background: var(--ground-raised); box-shadow: inset 0 0 0 1px var(--rule), var(--shadow-header); font: 400 14px/22px var(--font-sans); font-variant-numeric: tabular-nums; }
+  .mini b { font-weight: 600; }
+}
+.slider summary { cursor: pointer; color: var(--prussian); font: 600 14px/22px var(--font-sans); list-style: none; display: inline-flex; gap: 6px; align-items: center; }
+.slider summary::-webkit-details-marker { display: none; }
+.slider summary::before { content: ""; width: 10px; height: 3px; border-radius: 2px; background: var(--gilt); }
+.slider details p { margin-top: var(--space-2); max-width: 60ch; }
+.result { display: grid; gap: var(--space-5); padding: var(--space-6); border-radius: var(--radius-md); background: var(--ground-raised); box-shadow: inset 0 0 0 1px var(--rule); }
+@media (min-width: 1024px) { .result { position: sticky; top: calc(var(--size-header) + env(safe-area-inset-top, 0px) + var(--space-4)); } }
+.result__big { font: 600 48px/52px var(--font-sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.result__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.result hr { border: 0; border-top: 1px solid var(--rule); margin: 0; width: 100%; }
+.tables { display: grid; gap: var(--space-7); grid-template-columns: 1fr; margin-top: var(--space-6); }
+@media (min-width: 1024px) { .tables { grid-template-columns: 1fr 1fr; } }
+.tscroll { overflow-x: auto; min-width: 0; }
+table.grid { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 15px; }
+table.grid th, table.grid td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+table.grid thead th { font: 500 12px/16px var(--font-sans); color: var(--ink-soft); border-bottom: 1px solid var(--rule-strong); }
+table.grid tbody th { font-weight: 600; color: var(--ink); }
+table.grid td.base { background: var(--prussian-tint); color: var(--prussian); font-weight: 600; border-radius: 4px; }
+table.grid td.neg { color: var(--oxblood); }
+table.grid caption { caption-side: top; text-align: left; padding-bottom: var(--space-3); }
+table.plain { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+table.plain th, table.plain td { padding: 10px 12px 10px 0; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.plain thead th { font: 500 12px/16px var(--font-sans); color: var(--ink-soft); border-bottom: 1px solid var(--rule-strong); }
+table.plain td.r, table.plain th.r { text-align: right; padding-right: 0; padding-left: 12px; }
+details.build { border-top: 1px solid var(--rule); padding-block: var(--space-4); }
+details.build:last-of-type { border-bottom: 1px solid var(--rule); }
+details.build > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); font: 600 24px/30px var(--font-sans); letter-spacing: -0.01em; }
+details.build > summary::-webkit-details-marker { display: none; }
+details.build > summary::after { content: "+"; font: 400 28px/1 var(--font-sans); color: var(--prussian); transition: transform var(--duration-base) var(--ease-standard); }
+details.build[open] > summary::after { transform: rotate(45deg); }
+details.build .inner { display: grid; gap: var(--space-5); padding-top: var(--space-5); }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--space-5); max-width: 720px; }
+.kv > div { display: contents; }
+.kv dt, .kv dd { padding-block: 8px; border-bottom: 1px solid var(--rule); margin: 0; }
+.kv dd { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.kv dt small { display: block; font: 400 12px/16px var(--font-sans); color: var(--ink-soft); }
+.kv .total dt, .kv .total dd { border-bottom: 1px solid var(--rule-strong); font-weight: 600; }
+.chartbox { min-width: 0; }
+.chartbox svg text { font-family: var(--font-sans); }
+.dl-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+.err { color: var(--oxblood); font: 400 14px/22px var(--font-sans); display: inline-flex; gap: 6px; align-items: center; }
+.err::before { content: "!"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--oxblood-tint); font-weight: 700; font-size: 11px; }
+.pager { display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-8); }
+
+/* season, preseason, opener, method */
+.status { display: grid; gap: var(--space-3); padding: var(--space-6); border-radius: var(--radius-md); background: var(--ground-sunken); }
+.status__big { font: 600 36px/42px var(--font-sans); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-5); }
+.statrow .fig dd { font-size: 32px; line-height: 38px; }
+.cols2 { display: grid; gap: var(--space-7); grid-template-columns: 1fr; }
+.cols2 > *, .lab > *, .tables > * { min-width: 0; }
+@media (min-width: 1024px) { .cols2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.bullets { margin: 0; padding-left: 1.1em; display: grid; gap: var(--space-2); max-width: 65ch; }
+.bullets li::marker { color: var(--gilt); }
+.essay { display: grid; gap: var(--space-8); max-width: 760px; }
+.essay article { display: grid; gap: var(--space-4); }
+.essay .atlock { font: 500 12px/16px var(--font-sans); letter-spacing: 0.01em; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.formula { padding: var(--space-5); border-radius: var(--radius-sm); background: var(--ground-sunken); overflow-x: auto; white-space: pre; font: 400 14px/24px var(--font-mono); color: var(--ink); }
+.method { display: grid; gap: var(--space-8); }
+.method > section { min-width: 0; }
+.codepick { max-width: 420px; height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--rule-strong); background: var(--ground-raised); color: var(--ink); font: 500 15px/20px var(--font-sans); padding: 0 12px; }
+.codeview { max-height: 520px; overflow: auto; white-space: pre; font-size: 13px; line-height: 20px; }
+.method section { display: grid; gap: var(--space-4); }
+.srcs { display: grid; gap: var(--space-6); }
+.srcs ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-3); }
+.srcs li { display: grid; gap: 2px; max-width: 75ch; }
+footer { border-top: 1px solid var(--rule); padding-block: var(--space-6) var(--space-8); }
+footer .wrap { display: grid; gap: var(--space-2); }
+.skeleton { height: 420px; border-radius: var(--radius-xl); background: var(--ground-sunken); position: relative; overflow: hidden; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--sheen), transparent); transform: translateX(-100%); animation: sheen var(--duration-drift) var(--ease-linear) infinite; }
+@keyframes sheen { to { transform: translateX(100%); } }
+.boot { padding-block: var(--space-8); display: grid; gap: var(--space-5); }
+.boot p { color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; }
+}
+</style>
+
+<div id="root">
+  <div class="wrap boot">
+    <p class="micro">Priced In</p>
+    <p class="headline-3">What growth is already in the price?</p>
+    <div class="skeleton" aria-hidden="true"></div>
+    <p class="small">Loading the board.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="ds/bundle.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+"use strict";
+var e = React.createElement;
+var html = htm.bind(e);
+var useState = React.useState, useEffect = React.useEffect, useMemo = React.useMemo, useRef = React.useRef;
+var RJ = window.RJ, E = window.PricedInEngine;
+
+/* ---------------------------------------------------------------- format */
+var MINUS = "−";
+function pct(x, d) {
+  if (x === null || x === undefined || isNaN(x)) return "n/a";
+  d = d === undefined ? 1 : d;
+  var v = (Math.abs(x) * 100).toFixed(d);
+  if (Number(v) === 0) return (0).toFixed(d) + "%";
+  return (x < 0 ? MINUS : "") + v + "%";
+}
+function pts(x, d) {
+  if (x === null || x === undefined || isNaN(x)) return "n/a";
+  d = d === undefined ? 1 : d;
+  var v = (Math.abs(x) * 100).toFixed(d);
+  if (Number(v) === 0) return "0.0 points";
+  return (x > 0 ? "+" : MINUS) + v + " points";
+}
+function ptsShort(x) {
+  if (x === null || x === undefined || isNaN(x)) return "n/a";
+  var v = (Math.abs(x) * 100).toFixed(1);
+  if (Number(v) === 0) return "0.0";
+  return (x > 0 ? "+" : MINUS) + v;
+}
+function sym(ccy) { return ccy === "CAD" ? "C$" : "$"; }
+function money(x, ccy, d) {
+  if (x === null || x === undefined || isNaN(x)) return "n/a";
+  d = d === undefined ? 2 : d;
+  var s = Math.abs(x).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+  return (x < 0 ? MINUS : "") + sym(ccy) + s;
+}
+function big(x, ccy) {
+  var a = Math.abs(x), s = x < 0 ? MINUS : "";
+  if (a >= 1e9) return s + sym(ccy) + (a / 1e9).toFixed(2) + " billion";
+  return s + sym(ccy) + Math.round(a / 1e6).toLocaleString("en-US") + " million";
+}
+function mmCell(x) { return (x < 0 ? MINUS : "") + Math.round(Math.abs(x) / 1e6).toLocaleString("en-US"); }
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function dShort(d) { var p = d.split("-"); return MONTHS[+p[1] - 1] + " " + (+p[2]); }
+function dLong(d) { var p = d.split("-"); return MONTHS[+p[1] - 1] + " " + (+p[2]) + ", " + p[0]; }
+function mLabel(m) { var p = m.split("-"); return MONTHS[+p[1] - 1] + " " + p[0]; }
+function verdictKey(v) {
+  return v === "Expectations too low" ? "low" : v === "Expectations too high" ? "high" : v === "Deal price" ? "deal" : "fair";
+}
+function verdictShort(v) {
+  return v === "Expectations too low" ? "Too low" : v === "Expectations too high" ? "Too high" : v === "Deal price" ? "Deal price" : "About right";
+}
+function Verdict(props) {
+  var k = verdictKey(props.v);
+  return html`<span className=${"pill pill--" + k}>${props.long ? props.v : verdictShort(props.v)}</span>`;
+}
+function niceTicks(lo, hi, n) {
+  var span = hi - lo, step = Math.pow(10, Math.floor(Math.log10(span / n)));
+  var err = (n * step) / span;
+  if (err <= 0.15) step *= 10; else if (err <= 0.35) step *= 5; else if (err <= 0.75) step *= 2;
+  var out = [], t = Math.ceil(lo / step) * step;
+  for (; t <= hi + 1e-12; t += step) out.push(Math.round(t / step) * step);
+  return out;
+}
+
+/* ---------------------------------------------------------------- hooks */
+function useData() {
+  var s = useState({ status: "loading", data: null }), st = s[0], set = s[1];
+  useEffect(function () {
+    fetch("data/live.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (d) { set({ status: "ready", data: d }); })
+      .catch(function () { set({ status: "error", data: null }); });
+  }, []);
+  return st;
+}
+function parseRoute() {
+  var h = (location.hash || "").replace(/^#/, "");
+  if (h.indexOf("company-") === 0) return { view: "company", ticker: h.slice(8) };
+  if (["season", "preseason", "opener", "method", "board"].indexOf(h) >= 0) return { view: h };
+  return { view: "board" };
+}
+function useRoute() {
+  var s = useState(parseRoute()), r = s[0], set = s[1];
+  useEffect(function () {
+    function on() { set(parseRoute()); window.scrollTo(0, 0); }
+    window.addEventListener("hashchange", on);
+    return function () { window.removeEventListener("hashchange", on); };
+  }, []);
+  return r;
+}
+function useWidth() {
+  var ref = useRef(null), s = useState(0), w = s[0], set = s[1];
+  useEffect(function () {
+    if (!ref.current) return;
+    set(Math.round(ref.current.getBoundingClientRect().width));
+    var ro = new ResizeObserver(function (es) { es.forEach(function (en) { set(Math.round(en.contentRect.width)); }); });
+    ro.observe(ref.current);
+    return function () { ro.disconnect(); };
+  }, []);
+  return [ref, w];
+}
+function useMedia(q) {
+  var s = useState(function () { return window.matchMedia(q).matches; }), m = s[0], set = s[1];
+  useEffect(function () {
+    var mq = window.matchMedia(q), on = function () { set(mq.matches); };
+    if (mq.addEventListener) mq.addEventListener("change", on); else mq.addListener(on);
+    return function () { if (mq.removeEventListener) mq.removeEventListener("change", on); else mq.removeListener(on); };
+  }, [q]);
+  return m;
+}
+function useCapability(name) {
+  var s = useState(undefined), cap = s[0], set = s[1];
+  useEffect(function () {
+    var alive = true;
+    try {
+      var p = window.claude && window.claude.use ? window.claude.use(name) : Promise.resolve(null);
+      p.then(function (v) { if (alive) set(v || null); }, function () { if (alive) set(null); });
+    } catch (err) { set(null); }
+    return function () { alive = false; };
+  }, [name]);
+  return cap;
+}
+
+/* ---------------------------------------------------------------- derived */
+function sortedByGap(data) {
+  return Object.values(data.companies).slice().sort(function (a, b) {
+    var ga = a.live.gap === null ? 99 : a.live.gap, gb = b.live.gap === null ? 99 : b.live.gap;
+    return ga - gb;
+  });
+}
+function seasonLine(s) {
+  if (s.status !== "live") return null;
+  var sm = s.summary;
+  return { days: sm.days, port: sm.port_return, bench: sm.bench_return, excess: sm.excess, asOf: sm.as_of };
+}
+
+/* ---------------------------------------------------------------- hero art (real data, drawn on fields) */
+var GILT_ON_FIELD = "#d7b778";
+function svgURI(svg) { return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); }
+function linePath(xs, ys) { return xs.map(function (x, i) { return (i ? "L" : "M") + x.toFixed(1) + " " + ys[i].toFixed(1); }).join(""); }
+function heroBox(narrow) {
+  return narrow ? { W: 800, H: 1000, x0: 72, x1: 728, y0: 96, y1: 430 } : { W: 2100, H: 900, x0: 1060, x1: 1980, y0: 110, y1: 460 };
+}
+function artPrice(rows, markDate, field, narrow) {
+  var b = heroBox(narrow), n = rows.length;
+  var vals = rows.map(function (r) { return r[1]; });
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * 0.08 || 1;
+  lo -= pad; hi += pad;
+  var xs = rows.map(function (_, i) { return b.x0 + (b.x1 - b.x0) * i / (n - 1); });
+  var ys = vals.map(function (v) { return b.y1 - (b.y1 - b.y0) * (v - lo) / (hi - lo); });
+  var mi = rows.findIndex(function (r) { return r[0] === markDate; });
+  var mark = mi >= 0 ? '<line x1="' + xs[mi] + '" x2="' + xs[mi] + '" y1="' + (b.y0 - 30) + '" y2="' + (b.y1 + 20) + '" stroke="' + GILT_ON_FIELD + '" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/><circle cx="' + xs[mi] + '" cy="' + ys[mi] + '" r="13" fill="' + GILT_ON_FIELD + '"/>' : "";
+  var area = linePath(xs, ys) + "L" + b.x1 + " " + (b.y1 + 20) + "L" + b.x0 + " " + (b.y1 + 20) + "Z";
+  var grid = [0.25, 0.5, 0.75].map(function (f) { var y = b.y0 + (b.y1 - b.y0) * f; return '<line x1="' + b.x0 + '" x2="' + b.x1 + '" y1="' + y + '" y2="' + y + '" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>'; }).join("");
+  return svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + b.W + " " + b.H + '" preserveAspectRatio="xMidYMid slice"><rect width="100%" height="100%" fill="' + field + '"/>' + grid +
+    '<path d="' + area + '" fill="#ffffff" fill-opacity="0.07"/><path d="' + linePath(xs, ys) + '" fill="none" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>' + mark +
+    '<circle cx="' + xs[n - 1] + '" cy="' + ys[n - 1] + '" r="9" fill="#ffffff"/></svg>');
+}
+function artBars(items, field, narrow) {
+  /* items: [{v, emph}] horizontal bars from a zero line */
+  var b = heroBox(narrow), n = items.length;
+  var vals = items.map(function (it) { return it.v; });
+  var lo = Math.min(0, Math.min.apply(null, vals)), hi = Math.max(0, Math.max.apply(null, vals));
+  var span = (hi - lo) || 1, rowH = (b.y1 - b.y0) / n;
+  var zx = b.x0 + (b.x1 - b.x0) * (0 - lo) / span;
+  var bars = items.map(function (it, i) {
+    var x = b.x0 + (b.x1 - b.x0) * (Math.min(it.v, 0) - lo) / span;
+    var w = Math.max(6, (b.x1 - b.x0) * Math.abs(it.v) / span);
+    var y = b.y0 + rowH * i + rowH * 0.22;
+    return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (rowH * 0.56).toFixed(1) + '" rx="8" fill="' + (it.emph ? GILT_ON_FIELD : "#ffffff") + '" fill-opacity="' + (it.emph ? 1 : 0.85) + '"/>';
+  }).join("");
+  return svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + b.W + " " + b.H + '" preserveAspectRatio="xMidYMid slice"><rect width="100%" height="100%" fill="' + field + '"/>' +
+    '<line x1="' + zx + '" x2="' + zx + '" y1="' + (b.y0 - 24) + '" y2="' + (b.y1 + 24) + '" stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>' + bars + "</svg>");
+}
+function artLines(series, field, narrow, shade) {
+  /* series: [{ys:[...], color, width}], shade: [[i0,i1]] index ranges */
+  var b = heroBox(narrow);
+  var all = [].concat.apply([], series.map(function (s) { return s.ys; }));
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), pad = (hi - lo) * 0.1 || 1;
+  lo -= pad; hi += pad;
+  var n = series[0].ys.length;
+  function X(i) { return b.x0 + (b.x1 - b.x0) * i / Math.max(1, n - 1); }
+  function Y(v) { return b.y1 - (b.y1 - b.y0) * (v - lo) / (hi - lo); }
+  var sh = (shade || []).map(function (r) { return '<rect x="' + X(r[0]) + '" y="' + (b.y0 - 30) + '" width="' + (X(r[1]) - X(r[0])) + '" height="' + (b.y1 - b.y0 + 60) + '" fill="' + GILT_ON_FIELD + '" fill-opacity="0.22" rx="6"/>'; }).join("");
+  var zero = (lo < 0 && hi > 0) ? '<line x1="' + b.x0 + '" x2="' + b.x1 + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>' : "";
+  var paths = series.map(function (s) {
+    return '<path d="' + linePath(s.ys.map(function (_, i) { return X(i); }), s.ys.map(Y)) + '" fill="none" stroke="' + s.color + '" stroke-width="' + s.width + '" stroke-linejoin="round" stroke-linecap="round"/>';
+  }).join("");
+  return svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + b.W + " " + b.H + '" preserveAspectRatio="xMidYMid slice"><rect width="100%" height="100%" fill="' + field + '"/>' + sh + zero + paths + "</svg>");
+}
+
+/* ---------------------------------------------------------------- charts in the page */
+function Spark(props) {
+  var pts_ = props.path.filter(function (p) { return p[1] !== null; });
+  if (pts_.length < 2) return null;
+  var w = 120, h = 32, vals = pts_.map(function (p) { return p[1]; });
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  if (hi - lo < 0.004) { var m = (hi + lo) / 2; lo = m - 0.002; hi = m + 0.002; }
+  var xs = vals.map(function (_, i) { return 2 + (w - 6) * i / (vals.length - 1); });
+  var ys = vals.map(function (v) { return h - 4 - (h - 8) * (v - lo) / (hi - lo); });
+  return html`<svg className="spark" width=${w} height=${h} viewBox=${"0 0 " + w + " " + h} role="img" aria-label=${"Implied growth over the last " + vals.length + " closes, from " + pct(vals[0]) + " to " + pct(vals[vals.length - 1])}>
+    <path d=${linePath(xs, ys)} style=${{ fill: "none", stroke: "var(--prussian)", strokeWidth: 1.75, strokeLinejoin: "round", strokeLinecap: "round" }} />
+    <circle cx=${xs[xs.length - 1]} cy=${ys[ys.length - 1]} r="3" style=${{ fill: "var(--prussian)" }} />
+  </svg>`;
+}
+
+function GapBar(props) {
+  var lo = props.lo, hi = props.hi, g = props.gap;
+  function X(v) { return ((v - lo) / (hi - lo)) * 100; }
+  if (g === null) return html`<div className="gapbar"></div>`;
+  var left = Math.min(X(0), X(g)), width = Math.abs(X(g) - X(0));
+  var col = g <= -0.03 ? "var(--banknote)" : g >= 0.03 ? "var(--oxblood)" : "var(--rule-strong)";
+  return html`<div className="gapbar" aria-hidden="true">
+    <div className="gapbar__band" style=${{ left: X(-0.03) + "%", width: (X(0.03) - X(-0.03)) + "%" }}></div>
+    <div className="gapbar__axis"></div>
+    <div className="gapbar__zero" style=${{ left: X(0) + "%" }}></div>
+    <div className="gapbar__bar" style=${{ left: left + "%", width: Math.max(width, 0.8) + "%", background: col }}></div>
+  </div>`;
+}
+
+function GapPlot(props) {
+  var rw = useWidth(), ref = rw[0], W = rw[1];
+  var list = props.list;
+  var gaps = list.map(function (c) { return c.live.gap; }).filter(function (g) { return g !== null; });
+  var lo = Math.floor(Math.min(-0.05, Math.min.apply(null, gaps)) * 100 - 1) / 100;
+  var hi = Math.ceil(Math.max(0.05, Math.max.apply(null, gaps)) * 100 + 1) / 100;
+  var padL = 8, padR = 8, laneH = 30, top = 44;
+  var inner = Math.max(10, W - padL - padR);
+  function X(v) { return padL + inner * (v - lo) / (hi - lo); }
+  var items = list.filter(function (c) { return c.live.gap !== null; }).map(function (c) { return { c: c, x: X(c.live.gap) }; })
+    .sort(function (a, b) { return a.x - b.x; });
+  var lanes = [], minSep = 50;
+  items.forEach(function (it) {
+    var k = 0;
+    while (k < lanes.length && it.x - lanes[k] < minSep) k++;
+    lanes[k] = it.x; it.lane = k;
+  });
+  var nl = Math.max(1, lanes.length), H = top + nl * laneH + 62;
+  var ticks = niceTicks(lo * 100, hi * 100, W < 500 ? 4 : 8);
+  var colorOf = function (c) { var k = verdictKey(c.live.verdict); return k === "low" ? "var(--banknote)" : k === "high" ? "var(--oxblood)" : k === "deal" ? "var(--ground)" : "var(--ink-soft)"; };
+  return html`<div className="plot" ref=${ref}>
+    ${W > 0 && html`<svg width=${W} height=${H} viewBox=${"0 0 " + W + " " + H} role="img" aria-label=${"Gap between implied growth and anchor for " + items.length + " companies, from " + pts(items[0].c.live.gap) + " to " + pts(items[items.length - 1].c.live.gap)}>
+      <rect x=${X(-0.03)} y=${top - 30} width=${X(0.03) - X(-0.03)} height=${nl * laneH + 40} rx="6" style=${{ fill: "var(--ground-sunken)" }} />
+      <text x=${(X(-0.03) + X(0.03)) / 2} y=${top - 14} textAnchor="middle" style=${{ fill: "var(--ink-soft)", fontSize: 12, fontWeight: 500 }}>About right</text>
+      <text x=${X(lo) + 2} y=${top - 14} style=${{ fill: "var(--banknote)", fontSize: 12, fontWeight: 500 }}>Expectations too low</text>
+      <text x=${X(hi) - 2} y=${top - 14} textAnchor="end" style=${{ fill: "var(--oxblood)", fontSize: 12, fontWeight: 500 }}>Too high</text>
+      ${ticks.map(function (t) { return html`<g key=${"t" + t}>
+        <line x1=${X(t / 100)} x2=${X(t / 100)} y1=${top + nl * laneH + 8} y2=${top + nl * laneH + 14} style=${{ stroke: "var(--rule-strong)", strokeWidth: 1 }} />
+        <text x=${X(t / 100)} y=${top + nl * laneH + 32} textAnchor="middle" style=${{ fill: "var(--ink-soft)", fontSize: 12 }} className="num">${t === 0 ? "0" : (t > 0 ? "+" : MINUS) + Math.abs(t)}</text>
+      </g>`; })}
+      <line x1=${padL} x2=${W - padR} y1=${top + nl * laneH + 8} y2=${top + nl * laneH + 8} style=${{ stroke: "var(--rule-strong)", strokeWidth: 1 }} />
+      <line x1=${X(0)} x2=${X(0)} y1=${top - 6} y2=${top + nl * laneH + 8} style=${{ stroke: "var(--rule-strong)", strokeWidth: 1, strokeDasharray: "3 4" }} />
+      ${items.map(function (it) {
+        var y = top + it.lane * laneH + 14;
+        var c = it.c;
+        return html`<a key=${c.ticker} href=${"#company-" + c.ticker} className="plain" aria-label=${c.name + ": gap " + pts(c.live.gap)}>
+          <circle cx=${it.x} cy=${y} r="6" style=${{ fill: colorOf(c), stroke: verdictKey(c.live.verdict) === "deal" ? "var(--ink-soft)" : "var(--ground)", strokeWidth: verdictKey(c.live.verdict) === "deal" ? 1.75 : 2 }} />
+          <text x=${it.x + 10} y=${y + 4} style=${{ fill: "var(--ink)", fontSize: 12, fontWeight: 600 }}>${c.ticker}</text>
+        </a>`;
+      })}
+      <text x=${W - padR} y=${H - 4} textAnchor="end" style=${{ fill: "var(--ink-soft)", fontSize: 12 }}>Gap in percentage points: implied growth minus anchor</text>
+    </svg>`}
+  </div>`;
+}
+
+function LineChart(props) {
+  /* props: series [{name, values:[{x,y}], color, width, dash}], xLabels fn, yFmt, bands [{x0,x1,label,fill}], hband {y0,y1,label}, height */
+  var rw = useWidth(), ref = rw[0], W = rw[1];
+  var H = props.height || 280, padL = 52, padR = 16, padT = 28, padB = 34;
+  var all = [];
+  props.series.forEach(function (s) { s.values.forEach(function (p) { if (p.y !== null) all.push(p.y); }); });
+  if (props.hband) { all.push(props.hband.y0, props.hband.y1); }
+  (props.extraY || []).forEach(function (v) { all.push(v); });
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), pad = (hi - lo) * 0.08 || 0.01;
+  lo -= pad; hi += pad;
+  var n = props.series[0].values.length;
+  var iw = Math.max(10, W - padL - padR), ih = H - padT - padB;
+  function X(i) { return padL + iw * i / Math.max(1, n - 1); }
+  function Y(v) { return padT + ih - ih * (v - lo) / (hi - lo); }
+  var ticks = niceTicks(lo, hi, 4);
+  var xt = props.xTicks || [0, Math.floor((n - 1) / 2), n - 1];
+  return html`<div className="chartbox" ref=${ref}>
+    ${W > 0 && html`<svg width=${W} height=${H} viewBox=${"0 0 " + W + " " + H} role="img" aria-label=${props.label}>
+      ${(props.bands || []).map(function (b, k) { return html`<g key=${"b" + k}>
+        <rect x=${X(b.x0)} y=${padT} width=${Math.max(1, X(b.x1) - X(b.x0))} height=${ih} style=${{ fill: b.fill }} />
+        <text x=${X(b.x0) + 6} y=${padT - 8} style=${{ fill: "var(--ink-soft)", fontSize: 12, fontWeight: 500 }}>${b.label}</text>
+      </g>`; })}
+      ${props.hband && html`<g>
+        <rect x=${padL} y=${Y(props.hband.y1)} width=${iw} height=${Math.max(1, Y(props.hband.y0) - Y(props.hband.y1))} style=${{ fill: "var(--ground-sunken)" }} />
+        <text x=${padL + iw - 4} y=${Y(props.hband.y1) - 6} textAnchor="end" style=${{ fill: "var(--ink-soft)", fontSize: 12, fontWeight: 500 }}>${props.hband.label}</text>
+      </g>`}
+      ${ticks.map(function (t) { return html`<g key=${"y" + t}>
+        <line x1=${padL} x2=${padL + iw} y1=${Y(t)} y2=${Y(t)} style=${{ stroke: "var(--rule)", strokeWidth: 1 }} />
+        <text x=${padL - 8} y=${Y(t) + 4} textAnchor="end" className="num" style=${{ fill: "var(--ink-soft)", fontSize: 12 }}>${props.yFmt(t)}</text>
+      </g>`; })}
+      ${xt.map(function (i) { return html`<text key=${"x" + i} x=${X(i)} y=${H - 10} textAnchor=${i === 0 ? "start" : i === n - 1 ? "end" : "middle"} style=${{ fill: "var(--ink-soft)", fontSize: 12 }}>${props.xLabel(i)}</text>`; })}
+      ${props.series.map(function (s, k) {
+        var segs = [], cur = [];
+        s.values.forEach(function (p, i) { if (p.y === null) { if (cur.length) segs.push(cur); cur = []; } else cur.push([X(i), Y(p.y)]); });
+        if (cur.length) segs.push(cur);
+        return html`<g key=${"s" + k}>${segs.map(function (sg, j) { return html`<path key=${j} d=${sg.map(function (q, ii) { return (ii ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); }).join("")} style=${{ fill: "none", stroke: s.color, strokeWidth: s.width || 2, strokeDasharray: s.dash || "none", strokeLinejoin: "round", strokeLinecap: "round" }} />`; })}
+          ${s.endDot && segs.length && html`<circle cx=${segs[segs.length - 1][segs[segs.length - 1].length - 1][0]} cy=${segs[segs.length - 1][segs[segs.length - 1].length - 1][1]} r="4" style=${{ fill: s.color }} />`}
+        </g>`;
+      })}
+    </svg>`}
+  </div>`;
+}
+
+function Meter(props) {
+  /* where the price's implied growth sits against the anchor band */
+  var rw = useWidth(), ref = rw[0], W = rw[1];
+  var g = props.implied, a = props.anchor;
+  var lo = Math.min(-0.05, (g === null ? a : Math.min(g, a)) - 0.04), hi = Math.max(0.2, (g === null ? a : Math.max(g, a)) + 0.04);
+  lo = Math.floor(lo * 20) / 20; hi = Math.ceil(hi * 20) / 20;
+  var H = 86, padL = 22, padR = 22;
+  function X(v) { return padL + (W - padL - padR) * (v - lo) / (hi - lo); }
+  var ticks = niceTicks(lo * 100, hi * 100, W < 500 ? 4 : 7);
+  return html`<div className="chartbox" ref=${ref}>
+    ${W > 0 && html`<svg width=${W} height=${H} role="img" aria-label=${"Implied growth " + pct(g) + " against an anchor of " + pct(a) + "; the shaded band is the anchor plus or minus 3 points"}>
+      <rect x=${X(a - 0.03)} y="26" width=${X(a + 0.03) - X(a - 0.03)} height="20" rx="4" style=${{ fill: "var(--ground-sunken)" }} />
+      <line x1=${padL} x2=${W - padR} y1="36" y2="36" style=${{ stroke: "var(--rule-strong)", strokeWidth: 1 }} />
+      <line x1=${X(a)} x2=${X(a)} y1="20" y2="52" style=${{ stroke: "var(--ink)", strokeWidth: 2 }} />
+      <text x=${X(a)} y="14" textAnchor="middle" style=${{ fill: "var(--ink)", fontSize: 12, fontWeight: 600 }}>Anchor ${pct(a)}</text>
+      ${g !== null && html`<g>
+        <circle cx=${X(g)} cy="36" r="8" style=${{ fill: "var(--prussian)", stroke: "var(--ground)", strokeWidth: 2 }} />
+        <text x=${X(g)} y="66" textAnchor="middle" style=${{ fill: "var(--prussian)", fontSize: 12, fontWeight: 600 }}>Price implies ${pct(g)}</text>
+      </g>`}
+      ${ticks.map(function (t) { return html`<text key=${t} x=${X(t / 100)} y="82" textAnchor="middle" className="num" style=${{ fill: "var(--ink-soft)", fontSize: 11 }}>${(t < 0 ? MINUS : "") + Math.abs(t) + "%"}</text>`; })}
+    </svg>`}
+  </div>`;
+}
+
+/* ---------------------------------------------------------------- header and footer */
+function Header(props) {
+  var v = props.route.view;
+  var links = [
+    { label: "Board", href: "#board", current: v === "board" || v === "company" },
+    { label: "Season", href: "#season", current: v === "season" },
+    { label: "Preseason", href: "#preseason", current: v === "preseason" },
+    { label: "Method", href: "#method", current: v === "method" },
+  ];
+  return e(RJ.SiteHeader, { name: "Priced In", href: "#board", links: links, action: { label: "Read the opener", href: "#opener" }, navLabel: "Sections" });
+}
+function Footer(props) {
+  var m = props.data && props.data.meta;
+  return html`<footer><div className="wrap">
+    <p className="small">Priced In is a project by Rohan Jayapalan. Prices and filings come from public sources and can be late or wrong. Nothing here is investment advice.</p>
+    ${m && html`<p className="small num">Model v${m.model_version}, locked ${dShort("2026-10-14")}, 2026 (commit ${m.lock_commit}). Prices through the ${dLong(m.last_close)} close; data rebuilt ${m.refreshed_utc.replace("T", " ").replace("Z", " UTC")}.</p>`}
+  </div></footer>`;
+}
+
+/* ---------------------------------------------------------------- board */
+function heroSlides(data, narrow) {
+  var cos = data.companies, slides = [];
+  var ip = data.inplay, lead = ip.leader && cos[ip.leader];
+  if (lead) {
+    var top = ip.ranking[0], r0 = top.reasons[0];
+    var why = r0 ? r0.text + "." : "Quiet day: nothing crossed a trigger.";
+    var mark = r0 ? r0.date : null;
+    slides.push({
+      lines: ["In play:", lead.name],
+      tagline: why + " The price now implies " + pct(lead.live.implied) + " growth a year against a " + pct(lead.anchor.anchor) + " anchor.",
+      action: { label: "Open " + lead.name, href: "#company-" + lead.ticker },
+      media: { image: artPrice(data.prices[lead.ticker].slice(-50), mark, "#1e3f66", narrow), alt: lead.name + " closing prices over the last 50 trading days" + (mark ? ", with " + dShort(mark) + " marked" : "") },
+    });
+  }
+  var byGap = sortedByGap(data).filter(function (c) { return c.live.gap !== null && verdictKey(c.live.verdict) !== "deal"; });
+  var bg = byGap.slice().sort(function (a, b) { return Math.abs(b.live.gap) - Math.abs(a.live.gap); })[0];
+  if (bg) {
+    slides.push({
+      lines: ["Biggest gap:", bg.name],
+      tagline: "The price implies " + pct(bg.live.implied) + " revenue growth a year for five years; past growth and analysts point to " + pct(bg.anchor.anchor) + ".",
+      action: { label: "Open " + bg.name, href: "#company-" + bg.ticker },
+      media: { image: artBars(byGap.map(function (c) { return { v: c.live.gap, emph: c.ticker === bg.ticker }; }), "#2d5f50", narrow), alt: "Gaps for every company, most negative at the top, with " + bg.name + " highlighted" },
+    });
+  }
+  var s = data.season, sl = seasonLine(s);
+  if (sl) {
+    var L = s.ledger;
+    slides.push({
+      lines: ["Season 1, day " + sl.days + ":", "picks " + pct(sl.port) + ", group " + pct(sl.bench)],
+      tagline: "Five most negative gaps against an equal-weight portfolio of every name but the deal stock, since the Oct 14 close.",
+      action: { label: "See the box score", href: "#season" },
+      media: { image: artLines([{ ys: L.map(function (r) { return r.bench; }), color: "#ffffff", width: 4 }, { ys: L.map(function (r) { return r.port; }), color: GILT_ON_FIELD, width: 6 }], "#26313c", narrow), alt: "Season 1 picks against the group since Oct 14" },
+    });
+  } else {
+    slides.push({
+      lines: ["Season 1 opens", "at the Oct 14 close"],
+      tagline: "Five names with the most negative gaps, locked at 11:57 a.m. Eastern before the close. Scored after every close from here.",
+      action: { label: "See the picks", href: "#season" },
+      media: { image: artBars(s.picks.map(function (p) { return { v: p.gap, emph: true }; }), "#26313c", narrow), alt: "The five locked picks and their gaps" },
+    });
+  }
+  var bt = data.backtest.variants.as_reported;
+  var cum = bt.months.map(function (m) { return m[5] / m[6] - 1; });
+  var i0 = bt.months.findIndex(function (m) { return m[0] >= "2020-02"; }), i1 = bt.months.findIndex(function (m) { return m[0] > "2021-03"; });
+  slides.push({
+    lines: ["Tested before", "it counted"],
+    tagline: "From 2015 to Sep 2026, outside COVID, the screen trailed its group by " + pct(-bt.stats.ex_covid.excess_ann) + " a year as reported. I publish that before the season starts.",
+    action: { label: "See the backtest", href: "#preseason" },
+    media: { image: artLines([{ ys: cum, color: "#ffffff", width: 5 }], "#1e3f66", narrow, [[i0, i1]]), alt: "Backtest: picks relative to the group, 2015 to 2026, with the COVID window shaded" },
+  });
+  return slides;
+}
+
+function InPlayStrip(props) {
+  var data = props.data, ip = data.inplay, cos = data.companies;
+  var list = ip.ranking.slice(0, 4);
+  var maxS = Math.max(1, list[0] ? list[0].score : 1);
+  return html`<div className="watch">
+    <div>
+      <div className="intro" style=${{ marginBottom: "var(--space-5)" }}>
+        <h2 className="title">On watch</h2>
+        <p className="small">Scored after each close from price shocks, volume spikes, implied-growth swings and dated events. A score of 1.0 means a trigger fired; signals fade 15% a day.</p>
+      </div>
+      <div className="watch__list">
+        ${list.map(function (r) {
+          var c = cos[r.ticker], why = r.reasons[0];
+          return html`<a key=${r.ticker} href=${"#company-" + r.ticker} className="watch__item plain" style=${{ color: "var(--ink)" }}>
+            <span className="watch__score">${r.score.toFixed(2)}</span>
+            <span style=${{ minWidth: 0 }}><b className="label">${c.name}</b><span className="small" style=${{ display: "block" }}>${why ? why.text : "No signal"}</span></span>
+            <span className="meter" aria-hidden="true"><span style=${{ width: Math.min(100, (r.score / maxS) * 100) + "%" }}></span></span>
+          </a>`;
+        })}
+      </div>
+    </div>
+    <div className="side">
+      <h3>Coming up</h3>
+      ${ip.upcoming.length ? ip.upcoming.map(function (ev) { return html`<div key=${ev.ticker + ev.date} style=${{ display: "grid", gap: "2px" }}>
+        <span className="micro num">${dLong(ev.date)}</span>
+        <span>${ev.label}${ev.url ? html` · <a href=${ev.url} target="_blank" rel="noopener">source</a>` : null}</span>
+      </div>`; }) : html`<p className="small">Nothing dated yet.</p>`}
+      ${data.meta.stale && data.meta.stale.length > 0 && html`<p className="small">Prices for ${data.meta.stale.map(function (t) { return t + " (" + dShort(cos[t].live.date) + ")"; }).join(", ")} lag the latest close (${dShort(data.meta.last_close)}): the public pages I read were behind. The next refresh catches them up.</p>`}
+    </div>
+  </div>`;
+}
+
+function Board(props) {
+  var data = props.data;
+  var narrow = useMedia("(max-width: 767px)");
+  var slides = useMemo(function () { return heroSlides(data, narrow); }, [data, narrow]);
+  var all = useMemo(function () { return sortedByGap(data); }, [data]);
+  var f = useState("all"), filter = f[0], setFilter = f[1];
+  function count(k) { return all.filter(function (c) { return match(c, k); }).length; }
+  function match(c, k) {
+    if (k === "all") return true;
+    if (k === "flagged") return !!c.flag;
+    return verdictKey(c.live.verdict) === k;
+  }
+  var shown = all.filter(function (c) { return match(c, filter); });
+  var gl = all.map(function (c) { return c.live.gap; }).filter(function (g) { return g !== null; });
+  var lo = Math.min(-0.05, Math.min.apply(null, gl)) - 0.01, hi = Math.max(0.05, Math.max.apply(null, gl)) + 0.01;
+  var nLow = count("low"), nHigh = count("high");
+  return html`<main><div className="wrap">
+    <section className="section">
+      ${e(RJ.HeroCarousel, { slides: slides, label: "Today on Priced In" })}
+      <${InPlayStrip} data=${data} />
+    </section>
+
+    <section className="section" id="board-table">
+      <div className="intro">
+        <p className="eyebrow">The board</p>
+        <h2 className="headline-2">What growth is already in the price?</h2>
+        <p className="lead">For ${all.length} exchanges and financial-data companies in Canada and the US, I solve for the five-year revenue growth that today's price implies, then compare it with an anchor built from past growth and analysts' forecasts.</p>
+        <p className="small num">Gaps beyond 3 points either way get a verdict. Right now ${nLow} look priced for too little growth and ${nHigh} for too much. Prices through the ${dLong(data.meta.last_close)} close.</p>
+      </div>
+      <${GapPlot} list=${all} />
+      <div className="legend">
+        <span><i style=${{ background: "var(--banknote)" }}></i>Expectations too low</span>
+        <span><i style=${{ background: "var(--ink-soft)" }}></i>About right</span>
+        <span><i style=${{ background: "var(--oxblood)" }}></i>Expectations too high</span>
+        <span><i style=${{ background: "transparent", boxShadow: "inset 0 0 0 1.75px var(--ink-soft)" }}></i>Deal price</span>
+      </div>
+      <div className="board-controls">
+        ${e(RJ.FilterChips, { label: "Filter companies", value: filter, onChange: setFilter, options: [
+          { value: "all", label: "All", count: all.length },
+          { value: "low", label: "Too low", count: nLow },
+          { value: "fair", label: "About right", count: count("fair") },
+          { value: "high", label: "Too high", count: nHigh },
+          { value: "flagged", label: "Flagged", count: count("flagged") },
+        ] })}
+        <span className="small">Sorted by gap, most negative first</span>
+      </div>
+      <div className="board" role="table" aria-label="Companies by gap">
+        <div className="board__head" role="row">
+          <span role="columnheader">Company</span>
+          <span role="columnheader" className="r">Last close</span>
+          <span role="columnheader" className="r">Implied</span>
+          <span role="columnheader" className="r">Anchor</span>
+          <span role="columnheader">Gap (points)</span>
+          <span role="columnheader">Verdict</span>
+          <span role="columnheader">Implied, last 30 closes</span>
+        </div>
+        ${shown.map(function (c) {
+          return html`<a key=${c.ticker} href=${"#company-" + c.ticker} className="row plain" role="row">
+            <span className="c-name row__name" role="cell"><b>${c.name}</b><span>${c.ticker} · ${c.group}${c.flag ? html` · <span className="flagnote">${c.flag.label}</span>` : null}</span></span>
+            <span className="c-price val r" role="cell">${money(c.live.price, c.currency)}<small>${dShort(c.live.date)}</small></span>
+            <span className="c-implied val r" role="cell">${pct(c.live.implied)}</span>
+            <span className="c-anchor val r" role="cell">${pct(c.anchor.anchor)}</span>
+            <span className="c-nums" role="cell"><span>Implied <b>${pct(c.live.implied)}</b></span><span>Anchor <b>${pct(c.anchor.anchor)}</b></span><span>${money(c.live.price, c.currency)} on ${dShort(c.live.date)}</span></span>
+            <span className="c-gap gapcell" role="cell"><${GapBar} gap=${c.live.gap} lo=${lo} hi=${hi} /><span className="val num">${ptsShort(c.live.gap)}</span></span>
+            <span className="c-verdict" role="cell"><${Verdict} v=${c.live.verdict} /></span>
+            <span className="c-spark" role="cell"><${Spark} path=${c.live.implied_path} /></span>
+          </a>`;
+        })}
+      </div>
+    </section>
+
+    <section className="section">
+      <div className="endpanels">
+        ${e(RJ.LinkPanel, { title: "Read the method", description: "The model, every input, and where each number comes from.", href: "#method", icon: "arrow-right" })}
+        ${e(RJ.LinkPanel, { title: "See the backtest", description: "2015 to 2026, point in time, with COVID taken out three ways.", href: "#preseason", icon: "arrow-right" })}
+        ${e(RJ.LinkPanel, { title: "Follow Season 1", description: "Five picks against the group, scored after every close.", href: "#season", icon: "arrow-right" })}
+      </div>
+    </section>
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- company */
+function Slider(props) {
+  var s = props.spec, val = props.value;
+  function frac(v) { return Math.max(0, Math.min(1, (v - s.min) / (s.max - s.min))); }
+  function pos(v) { return "calc(10px + (100% - 20px) * " + frac(v).toFixed(5) + ")"; }
+  var id = "sl-" + props.id;
+  return html`<div className="slider">
+    <div className="slider__head">
+      <label htmlFor=${id}>${props.label}</label>
+      <span className="slider__value">${pct(val, props.digits === undefined ? 2 : props.digits)}</span>
+    </div>
+    <div className="slider__track">
+      <div className="slider__rail"></div>
+      <div className="slider__zone" style=${{ left: pos(s.zone[0]), width: "calc((100% - 20px) * " + Math.max(0.006, frac(s.zone[1]) - frac(s.zone[0])).toFixed(5) + ")" }}></div>
+      <div className="slider__notch" style=${{ left: pos(s.rec) }} title=${"Recommended: " + pct(s.rec, 2)}></div>
+      <input id=${id} type="range" min=${s.min} max=${s.max} step=${s.step} value=${val}
+        aria-valuetext=${pct(val, 2)}
+        onChange=${function (ev) { props.onChange(parseFloat(ev.target.value)); }} />
+    </div>
+    <div className="slider__scale"><span>${pct(s.min, 1)}</span><span>${pct(s.max, 1)}</span></div>
+    <p className="slider__rec"><span className="slider__key" aria-hidden="true"></span>Recommended ${pct(s.rec, 2)} · zone ${pct(s.zone[0], 1)} to ${pct(s.zone[1], 1)}</p>
+    <details><summary>Why this spot</summary><p>${s.why}</p></details>
+  </div>`;
+}
+
+function SensTables(props) {
+  var c = props.c, st = props.st, price = c.live.price;
+  var base = { revenue: c.inputs.revenue, debt: c.inputs.debt, cash: c.inputs.cash, shares: c.inputs.shares, minority: 0, fcf_margin: st.margin, wacc: st.wacc, terminal_growth: st.tg };
+  var waccs = [-0.01, -0.005, 0, 0.005, 0.01].map(function (d) { return st.wacc + d; });
+  var tgs = [-0.01, -0.005, 0, 0.005, 0.01].map(function (d) { return st.tg + d; });
+  var views = [-0.04, -0.02, 0, 0.02, 0.04].map(function (d) { return st.view + d; });
+  return html`<div className="tables">
+    <div className="tscroll">
+      <table className="grid">
+        <caption><span className="title">Implied growth</span><br /><span className="small">Rows: WACC. Columns: terminal growth. Centre: your inputs.</span></caption>
+        <thead><tr><th></th>${tgs.map(function (t) { return html`<th key=${t} scope="col">${pct(t, 2)}</th>`; })}</tr></thead>
+        <tbody>${waccs.map(function (w, i) { return html`<tr key=${w}><th scope="row">${pct(w, 2)}</th>${tgs.map(function (t, j) {
+          var g = (w > t) ? E.impliedGrowth(Object.assign({}, base, { wacc: w, terminal_growth: t }), price) : null;
+          return html`<td key=${t} className=${(i === 2 && j === 2 ? "base " : "") + (g !== null && g < 0 ? "neg" : "")}>${g === null ? "n/a" : pct(g)}</td>`;
+        })}</tr>`; })}</tbody>
+      </table>
+    </div>
+    <div className="tscroll">
+      <table className="grid">
+        <caption><span className="title">Value per share</span><br /><span className="small">Rows: WACC. Columns: your view of growth. Price ${money(price, c.currency)}.</span></caption>
+        <thead><tr><th></th>${views.map(function (v) { return html`<th key=${v} scope="col">${pct(v, 1)}</th>`; })}</tr></thead>
+        <tbody>${waccs.map(function (w, i) { return html`<tr key=${w}><th scope="row">${pct(w, 2)}</th>${views.map(function (v, j) {
+          var val = (w > st.tg) ? E.valuePerShare(Object.assign({}, base, { wacc: w }), v) : null;
+          return html`<td key=${v} className=${(i === 2 && j === 2 ? "base " : "") + (val !== null && val < price ? "neg" : "")}>${val === null ? "n/a" : money(val, c.currency, 0)}</td>`;
+        })}</tr>`; })}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function Schedule(props) {
+  var c = props.c, inp = props.inp, g = props.g;
+  if (g === null) return html`<p className="small">No growth rate between ${MINUS}50% and 100% matches the price at these inputs.</p>`;
+  var s = E.schedule(inp, g), ccy = c.currency;
+  return html`<div className="tscroll"><table className="grid">
+    <caption className="small">${sym(ccy)} millions. Years 1 to 5 grow at ${pct(g)}; years 6 to 10 fade to ${pct(inp.terminal_growth, 2)}; discounted at ${pct(inp.wacc, 2)}.</caption>
+    <thead><tr><th></th>${s.rows.map(function (r) { return html`<th key=${r.year} scope="col">Year ${r.year}</th>`; })}</tr></thead>
+    <tbody>
+      <tr><th scope="row">Growth</th>${s.rows.map(function (r) { return html`<td key=${r.year}>${pct(r.growth)}</td>`; })}</tr>
+      <tr><th scope="row">Revenue</th>${s.rows.map(function (r) { return html`<td key=${r.year}>${mmCell(r.revenue)}</td>`; })}</tr>
+      <tr><th scope="row">Free cash flow</th>${s.rows.map(function (r) { return html`<td key=${r.year}>${mmCell(r.fcf)}</td>`; })}</tr>
+      <tr><th scope="row">Present value</th>${s.rows.map(function (r) { return html`<td key=${r.year}>${mmCell(r.pv)}</td>`; })}</tr>
+    </tbody>
+  </table></div>
+  <dl className="kv" style=${{ marginTop: "var(--space-5)" }}>
+    <div><dt>Present value of years 1 to 10</dt><dd>${big(s.sumPv, ccy)}</dd></div>
+    <div><dt>Present value of everything after year 10<small>${pct(s.tvShare, 0)} of enterprise value</small></dt><dd>${big(s.pvTv, ccy)}</dd></div>
+    <div><dt>Enterprise value</dt><dd>${big(s.ev, ccy)}</dd></div>
+    <div><dt>Less debt, plus cash</dt><dd>${big(-inp.debt + inp.cash, ccy)}</dd></div>
+    <div className="total"><dt>Value per share</dt><dd>${money(s.perShare, ccy)}</dd></div>
+  </dl>`;
+}
+
+function DownloadModel(props) {
+  var dl = useCapability("downloads");
+  var s = useState(""), msg = s[0], setMsg = s[1];
+  var t = props.ticker, file = "PricedIn_" + t + ".xlsx";
+  if (dl === undefined) return null;
+  if (dl === null) return html`<p className="small">The Excel model for ${t} downloads from this page when it's open in Claude.</p>`;
+  function go() {
+    setMsg("");
+    /* artifacts don't serve .xlsx, so each workbook ships base64-encoded inside a JSON file */
+    fetch("models/PricedIn_" + t + ".json").then(function (r) { if (!r.ok) throw new Error("missing"); return r.json(); })
+      .then(function (j) {
+        var bin = atob(j.b64), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return dl.save({ filename: file, data: bytes });
+      })
+      .then(function () { setMsg("saved"); })
+      .catch(function (err) {
+        var code = err && err.code;
+        if (code === "declined") return;
+        if (code === "rate_limited") return setMsg("Another download prompt is open. Finish it, then try again.");
+        setMsg("The download didn't start. Reload the page and try again.");
+      });
+  }
+  return html`<div className="dl-row">
+    ${e(RJ.Button, { variant: "secondary", onClick: go }, "Download the Excel model")}
+    <span className="small">Live formulas: inputs, history, WACC, a bisection solver, the DCF, sensitivities and a check against this site.</span>
+    ${msg && msg !== "saved" && html`<span className="err" role="alert">${msg}</span>`}
+  </div>`;
+}
+
+function Company(props) {
+  var data = props.data, c = data.companies[props.ticker];
+  var sp = c && c.sliders;
+  var init = c ? { wacc: sp.wacc.rec, tg: sp.tg.rec, margin: sp.margin.rec, view: sp.view.rec } : null;
+  var s = useState(init), st = s[0], setSt = s[1];
+  useEffect(function () { setSt(init); }, [props.ticker]);
+  if (!c || !st) return html`<main><div className="wrap"><p className="headline-3">I don't cover that company.</p><p style=${{ marginTop: "var(--space-4)" }}><a href="#board">Go back to the board</a></p></div></main>`;
+  var price = c.live.price, ccy = c.currency;
+  var inp = { revenue: c.inputs.revenue, debt: c.inputs.debt, cash: c.inputs.cash, shares: c.inputs.shares, minority: 0, fcf_margin: st.margin, wacc: st.wacc, terminal_growth: st.tg };
+  var g = st.wacc > st.tg ? E.impliedGrowth(inp, price) : null;
+  var gap = g === null ? null : g - c.anchor.anchor;
+  var deal = c.flag && c.flag.label === "Deal price";
+  var vtext = deal ? "Deal price" : E.verdict(gap);
+  var atView = st.wacc > st.tg ? E.valuePerShare(inp, st.view) : null;
+  var changed = st.wacc !== init.wacc || st.tg !== init.tg || st.margin !== init.margin || st.view !== init.view;
+  function set(k) { return function (v) { var n = Object.assign({}, st); n[k] = v; setSt(n); }; }
+  var order = sortedByGap(data), idx = order.findIndex(function (x) { return x.ticker === c.ticker; });
+  var prev = order[(idx - 1 + order.length) % order.length], next = order[(idx + 1) % order.length];
+  var wb = c.wacc_build, fb = c.fcf_build, an = c.anchor;
+  var path = c.live.implied_path;
+  var lk = c.lock;
+  return html`<main><div className="wrap">
+    <div className="crumbs">
+      <a href="#board">All companies</a>
+      <span className="small num">Prices through ${dLong(c.live.date)}</span>
+    </div>
+    <header className="co-head">
+      <p className="micro">${c.ticker} · ${c.exchange} · ${c.group} · reports in ${c.currency}</p>
+      <h1 className="headline-1">${c.name}</h1>
+      <p className="lead">At ${money(price, ccy)}, the ${dShort(c.live.date)} close, the price implies revenue growth of ${pct(c.live.implied)} a year for five years. My anchor is ${pct(an.anchor)}, a gap of ${pts(c.live.gap)}.</p>
+      <div className="co-meta"><${Verdict} v=${c.live.verdict} long=${true} />${c.flag ? html`<span className="flagnote">Fit flag: ${c.flag.label}</span>` : null}</div>
+      ${c.flag && html`<div className="notice"><b>${c.flag.label}</b><span className="small" style=${{ color: "var(--ink)" }}>${c.flag.note}</span></div>`}
+    </header>
+
+    <dl className="figs">
+      <div className="fig"><dt>Implied growth</dt><dd>${pct(c.live.implied)}</dd><small>5 years, at the last close</small></div>
+      <div className="fig"><dt>Anchor</dt><dd>${pct(an.anchor)}</dd><small>History and analysts</small></div>
+      <div className="fig"><dt>Gap</dt><dd>${ptsShort(c.live.gap)}</dd><small>Points; ±3 is about right</small></div>
+      <div className="fig"><dt>WACC</dt><dd>${pct(c.inputs.wacc, 2)}</dd><small>Bottom-up beta ${wb.beta_adj.toFixed(2)}</small></div>
+      <div className="fig"><dt>Terminal growth</dt><dd>${pct(c.inputs.terminal_growth, 2)}</dd><small>After year 10</small></div>
+      <div className="fig"><dt>FCF margin</dt><dd>${pct(c.inputs.fcf_margin)}</dd><small>Unlevered, trailing 12 months</small></div>
+    </dl>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="intro" style=${{ marginBottom: "var(--space-5)" }}>
+        <h2 className="headline-3">Where the price sits</h2>
+        <p className="small">The dot is the growth the price implies; the line is my anchor, with the about-right band 3 points either side.</p>
+      </div>
+      <${Meter} implied=${c.live.implied} anchor=${an.anchor} />
+      <div style=${{ marginTop: "var(--space-6)" }}>
+        <${LineChart} label=${"Implied growth over the last " + path.length + " closes against the anchor"} height=${240}
+          series=${[{ name: "Implied", values: path.map(function (p) { return { y: p[1] }; }), color: "var(--prussian)", width: 2.25, endDot: true }]}
+          hband=${{ y0: an.anchor - 0.03, y1: an.anchor + 0.03, label: "About right: anchor ±3 points" }}
+          extraY=${[an.anchor]}
+          xLabel=${function (i) { return dShort(path[i][0]); }} yFmt=${function (v) { return pct(v, 0); }} />
+        <p className="small" style=${{ marginTop: "var(--space-2)" }}>Implied growth at each of the last ${path.length} closes, holding the locked inputs fixed. At the lock (${dShort(lk.date)}) it was ${pct(lk.implied)}.</p>
+      </div>
+    </section>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="intro" style=${{ marginBottom: "var(--space-5)" }}>
+        <h2 className="headline-3">Try your own inputs</h2>
+        <p className="small">The gold notch is where I'd set each input and the shaded zone is the range I'd defend. Move WACC, terminal growth or margin to re-solve implied growth at today's price; move your view of growth to see what the stock is worth if you're right.</p>
+      </div>
+      <div className="lab">
+        <div>
+          <div className="sliders">
+            <${Slider} id="wacc" label="WACC" spec=${sp.wacc} value=${st.wacc} onChange=${set("wacc")} />
+            <${Slider} id="tg" label="Terminal growth" spec=${sp.tg} value=${st.tg} onChange=${set("tg")} />
+            <${Slider} id="margin" label="Free-cash-flow margin" spec=${sp.margin} value=${st.margin} onChange=${set("margin")} digits=${1} />
+            <${Slider} id="view" label="Your view of growth" spec=${sp.view} value=${st.view} onChange=${set("view")} digits=${1} />
+          </div>
+          <div className="mini" aria-hidden="true">
+            <span>Implied <b>${g === null ? "n/a" : pct(g)}</b></span>
+            <span>Gap <b>${ptsShort(gap)}</b></span>
+            <span>At ${pct(st.view)}: <b>${atView === null ? "n/a" : money(atView, ccy, 0)}</b></span>
+          </div>
+        </div>
+        <div className="result" aria-live="polite">
+          <div><p className="micro">At your inputs, the price implies</p><p className="result__big">${g === null ? "n/a" : pct(g)}</p><p className="small">revenue growth a year for five years</p></div>
+          <div className="result__row"><span className="label num">Gap ${ptsShort(gap)} points</span><${Verdict} v=${vtext} /></div>
+          <hr />
+          <div><p className="micro">If revenue grows ${pct(st.view)} a year</p><p className="result__big">${atView === null ? "n/a" : money(atView, ccy)}</p><p className="small num">${atView === null ? "" : (atView >= price ? pct(atView / price - 1) + " above" : pct(1 - atView / price) + " below") + " the " + money(price, ccy) + " price"}</p></div>
+          <div className="result__row">
+            ${changed ? e(RJ.Button, { variant: "secondary", onClick: function () { setSt(init); } }, "Reset to my spots") : html`<span className="small">Showing my recommended spots.</span>`}
+          </div>
+        </div>
+      </div>
+      <${SensTables} c=${c} st=${st} />
+    </section>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="intro" style=${{ marginBottom: "var(--space-4)" }}>
+        <h2 className="headline-3">How the numbers are built</h2>
+      </div>
+      <details className="build">
+        <summary>The cash flows at the implied growth rate</summary>
+        <div className="inner"><${Schedule} c=${c} inp=${inp} g=${g} /></div>
+      </details>
+      <details className="build">
+        <summary>Free cash flow</summary>
+        <div className="inner">
+          <dl className="kv">
+            <div><dt>Free cash flow, trailing 12 months<small>Cash from operations minus capex</small></dt><dd>${big(fb.fcf_ttm, ccy)}</dd></div>
+            <div><dt>Plus after-tax interest<small>Operating income minus pretax income, times (1 − ${pct(wb.tax, 1)} tax)</small></dt><dd>${big(fb.interest_add_back, ccy)}</dd></div>
+            <div className="total"><dt>Unlevered free cash flow</dt><dd>${big(fb.ufcf_ttm, ccy)}</dd></div>
+            <div><dt>Revenue used</dt><dd>${big(c.inputs.revenue, ccy)}</dd></div>
+            <div className="total"><dt>Margin, held for 10 years</dt><dd>${pct(c.inputs.fcf_margin)}</dd></div>
+          </dl>
+          ${fb.notes && html`<p className="small">${fb.notes}</p>`}
+        </div>
+      </details>
+      <details className="build">
+        <summary>Cost of capital</summary>
+        <div className="inner">
+          <dl className="kv">
+            <div><dt>Risk-free rate<small>${wb.rf_source}, Oct 13, 2026</small></dt><dd>${pct(wb.rf, 2)}</dd></div>
+            <div><dt>Own beta, 60 months<small>${wb.beta_source}; Blume-adjusted ${wb.beta_own_blume.toFixed(2)}</small></dt><dd>${wb.beta_raw.toFixed(2)}</dd></div>
+            <div><dt>Group median unlevered beta<small>${c.group}</small></dt><dd>${wb.beta_group_unlevered.toFixed(2)}</dd></div>
+            <div><dt>Relevered for this company's debt</dt><dd>${wb.beta_adj.toFixed(2)}</dd></div>
+            <div><dt>Equity risk premium<small>Damodaran, start of 2026</small></dt><dd>${pct(wb.erp, 2)}</dd></div>
+            <div className="total"><dt>Cost of equity</dt><dd>${pct(wb.ke, 2)}</dd></div>
+            <div><dt>Cost of debt<small>Risk-free plus ${pct(wb.spread, 2)} for ${wb.debt_to_ebitda.toFixed(1)}x debt to EBITDA</small></dt><dd>${pct(wb.kd, 2)}</dd></div>
+            <div><dt>Weights<small>Market value of equity and book debt</small></dt><dd>${pct(wb.we, 0)} / ${pct(wb.wd, 0)}</dd></div>
+            <div className="total"><dt>WACC</dt><dd>${pct(c.inputs.wacc, 2)}</dd></div>
+          </dl>
+        </div>
+      </details>
+      <details className="build">
+        <summary>The anchor</summary>
+        <div className="inner">
+          <dl className="kv">
+            <div><dt>Past revenue growth<small>${an.hist_cagr === null ? "Not used: history isn't comparable" : an.hist_window}</small></dt><dd>${an.hist_cagr === null ? "n/a" : pct(an.hist_cagr)}</dd></div>
+            <div><dt>Analysts' forecast<small>${an.consensus_note}</small></dt><dd>${pct(an.consensus)}</dd></div>
+            <div className="total"><dt>Anchor</dt><dd>${pct(an.anchor)}</dd></div>
+          </dl>
+          ${an.hist_note && html`<p className="small">${an.hist_note}</p>`}
+        </div>
+      </details>
+      <div style=${{ marginTop: "var(--space-6)" }}><${DownloadModel} ticker=${c.ticker} /></div>
+    </section>
+
+    <nav className="pager" aria-label="Other companies">
+      ${e(RJ.Button, { variant: "quiet", href: "#company-" + prev.ticker }, "Previous: " + prev.name)}
+      ${e(RJ.Button, { variant: "quiet", href: "#company-" + next.ticker, icon: "arrow-right" }, "Next: " + next.name)}
+    </nav>
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- season */
+function Season(props) {
+  var data = props.data, s = data.season, cos = data.companies;
+  var live = s.status === "live";
+  var sl = seasonLine(s);
+  return html`<main><div className="wrap">
+    <section className="section">
+      <div className="intro">
+        <p className="eyebrow">Season 1</p>
+        <h1 className="headline-1">${live ? "Picks " + pct(sl.port) + ", group " + pct(sl.bench) : "Opens at the Oct 14 close"}</h1>
+        <p className="lead">I hold the five names with the most negative gaps, equal weight, and rebalance on the first trading day of each month. The benchmark is an equal-weight portfolio of every name except deal-price names.</p>
+        <p className="small">Picks were locked at 11:57 a.m. Eastern on Oct 14, 2026, before the close, and committed to the project's history (commit ${s.commit}). Price returns in each stock's own currency, no trading costs or dividends.</p>
+      </div>
+      ${live ? html`<div className="stack-7">
+        <dl className="statrow">
+          <div className="fig"><dt>Picks</dt><dd>${pct(sl.port, 2)}</dd><small>Since the Oct 14 close</small></div>
+          <div className="fig"><dt>Group</dt><dd>${pct(sl.bench, 2)}</dd><small>${s.bench_members.length} names, equal weight</small></div>
+          <div className="fig"><dt>Difference</dt><dd>${ptsShort(sl.excess)}</dd><small>Points</small></div>
+          <div className="fig"><dt>Calls right so far</dt><dd>${s.calls_right} of ${s.calls.length}</dd><small>Too low or too high, against the group</small></div>
+        </dl>
+        <${LineChart} label="Season 1 picks and group, indexed to 100 at the Oct 14 close" height=${280}
+          series=${[{ values: s.ledger.map(function (r) { return { y: r.bench }; }), color: "var(--rule-strong)", width: 2 }, { values: s.ledger.map(function (r) { return { y: r.port }; }), color: "var(--gilt)", width: 2.75, endDot: true }]}
+          xLabel=${function (i) { return dShort(s.ledger[i].date); }} yFmt=${function (v) { return v.toFixed(1); }} />
+        <div className="legend"><span><i style=${{ background: "var(--gilt)" }}></i>Picks</span><span><i style=${{ background: "var(--rule-strong)" }}></i>Group</span><span className="num">Indexed to 100 at the Oct 14 close; ${s.summary.days} trading days</span></div>
+      </div>` : html`<div className="status">
+        <p className="status__big">Waiting for the first close</p>
+        <p className="body">Entry prices are the Oct 14, 2026 closes. The box score fills in after that close and updates after every close from then on.</p>
+      </div>`}
+    </section>
+
+    <section className="section">
+      <div className="cols2">
+        <div>
+          <h2 className="headline-3" style=${{ marginBottom: "var(--space-5)" }}>${live ? "Current picks" : "Opening picks"}</h2>
+          <div className="tscroll"><table className="plain">
+            <thead><tr><th>Company</th><th className="r">Gap at lock</th><th className="r">Implied</th><th className="r">Anchor</th><th className="r">${live ? "Since entry" : "Last close"}</th></tr></thead>
+            <tbody>${s.picks.map(function (p) {
+              var c = cos[p.ticker], r = s.name_returns && s.name_returns[p.ticker];
+              return html`<tr key=${p.ticker}><td><a href=${"#company-" + p.ticker}>${p.name}</a><span className="micro" style=${{ display: "block" }}>${p.ticker}</span></td>
+                <td className="r num">${ptsShort(p.gap)}</td><td className="r num">${pct(p.implied_growth)}</td><td className="r num">${pct(p.anchor)}</td>
+                <td className="r num">${live && r !== undefined ? pct(r, 2) : money(c.live.price, c.currency) + " (" + dShort(c.live.date) + ")"}</td></tr>`;
+            })}</tbody>
+          </table></div>
+          ${live && s.periods.length > 1 && html`<p className="small" style=${{ marginTop: "var(--space-3)" }}>Rebalanced ${s.periods.length - 1} time${s.periods.length > 2 ? "s" : ""}; the table shows the opening five.</p>`}
+        </div>
+        <div>
+          <h2 className="headline-3" style=${{ marginBottom: "var(--space-5)" }}>The rules</h2>
+          <ul className="bullets">
+            <li>${s.entry_rule}</li>
+            <li>${s.rebalance_rule}</li>
+            <li>${s.benchmark}</li>
+            <li>A directional call is right so far if a "too low" stock beats the group, or a "too high" stock trails it, since the Oct 14 close.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    ${live && html`<section className="section">
+      <div className="intro"><h2 className="headline-3">Calls so far</h2><p className="small">Every company with a too-low or too-high verdict at the lock, against the group since the Oct 14 close.</p></div>
+      <div className="tscroll"><table className="plain">
+        <thead><tr><th>Company</th><th>Call</th><th className="r">Return</th><th className="r">Against the group</th><th>So far</th></tr></thead>
+        <tbody>${s.calls.map(function (k) { var c = cos[k.ticker]; return html`<tr key=${k.ticker}>
+          <td><a href=${"#company-" + k.ticker}>${c.name}</a></td><td>${k.call}</td>
+          <td className="r num">${pct(k.ret, 2)}</td><td className="r num">${ptsShort(k.rel)}</td>
+          <td><span className=${"pill pill--" + (k.right ? "right" : "wrong")}>${k.right ? "Right" : "Wrong"}</span></td></tr>`; })}</tbody>
+      </table></div>
+    </section>`}
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- preseason */
+function StatsTable(props) {
+  var st = props.stats;
+  var keys = [["all_months", "All months"], ["ex_covid", "Excluding COVID"], ["covid_only", "COVID window only"], ["train", "2015 to 2024 (design)"], ["holdout", "2025 to Sep 2026 (held out)"]];
+  return html`<div className="tscroll"><table className="plain">
+    <thead><tr><th>Period</th><th className="r">Months</th><th className="r">Picks less group, a year</th><th className="r">90% range</th><th className="r">Months ahead</th><th className="r">Picks, a year</th><th className="r">Group, a year</th></tr></thead>
+    <tbody>${keys.map(function (k) { var s = st[k[0]]; return html`<tr key=${k[0]}>
+      <td>${k[1]}${k[0] === "covid_only" ? html`<span className="micro" style=${{ display: "block" }}>14 months: read the direction, not the size</span>` : null}</td>
+      <td className="r num">${s.months}</td>
+      <td className="r num" style=${{ fontWeight: 600, color: s.excess_ann >= 0 ? "var(--banknote)" : "var(--oxblood)" }}>${(s.excess_ann >= 0 ? "+" : "") + pct(s.excess_ann, 2)}</td>
+      <td className="r num">${pct(s.excess_ann_lo90, 1)} to ${pct(s.excess_ann_hi90, 1)}</td>
+      <td className="r num">${pct(s.hit_rate, 0)}</td>
+      <td className="r num">${pct(s.port_cagr, 1)}</td>
+      <td className="r num">${pct(s.bench_cagr, 1)}</td></tr>`; })}</tbody>
+  </table></div>`;
+}
+
+function Preseason(props) {
+  var bt = props.data.backtest;
+  var f = useState("as_reported"), tag = f[0], setTag = f[1];
+  var nf = useState(false), showNf = nf[0], setShowNf = nf[1];
+  var v = bt.variants[tag], months = v.months;
+  var i0 = months.findIndex(function (m) { return m[0] >= bt.covid_window[0]; });
+  var i1 = months.findIndex(function (m) { return m[0] > bt.covid_window[1]; });
+  var h0 = months.findIndex(function (m) { return m[0] >= "2025-01"; });
+  var order = ["as_reported", "covid_neutral_fundamentals", "covid_neutral_fundamentals_and_rates"];
+  var series = order.map(function (k) {
+    var mm = bt.variants[k].months;
+    return { values: mm.map(function (m) { return { y: m[5] / m[6] - 1 }; }), color: k === tag ? "var(--prussian)" : "var(--rule-strong)", width: k === tag ? 2.75 : 1.25, endDot: k === tag };
+  });
+  series.sort(function (a, b) { return a.width - b.width; });
+  var ar = bt.variants.as_reported.stats, cn = bt.variants.covid_neutral_fundamentals.stats;
+  return html`<main><div className="wrap">
+    <section className="section">
+      <div className="intro">
+        <p className="eyebrow">Preseason</p>
+        <h1 className="headline-1">The screen didn't beat its group</h1>
+        <p className="lead">Before Season 1, I ran the same idea month by month from 2015 to Sep 2026 using only filings public at each month-end. Outside the COVID window, the five biggest negative gaps trailed an equal-weight group by ${pct(-ar.ex_covid.excess_ann, 1)} a year as reported, well inside what luck alone produces.</p>
+        <p className="small">I'm publishing the result before the live season so the season can't be cherry-picked. COVID made the screen look better than it is: in Feb 2020 to Mar 2021 alone it was ahead by ${pct(ar.covid_only.excess_ann, 1)} a year, so I report that window separately and test it three ways.</p>
+      </div>
+      <div className="board-controls" style=${{ marginTop: 0 }}>
+        ${e(RJ.FilterChips, { label: "COVID treatment", value: tag, onChange: setTag, options: [
+          { value: "as_reported", label: "As reported" },
+          { value: "covid_neutral_fundamentals", label: "COVID-neutral fundamentals" },
+          { value: "covid_neutral_fundamentals_and_rates", label: "Plus normalized rates" },
+        ] })}
+      </div>
+      <${LineChart} label=${"Backtest: picks relative to the group, cumulative, " + v.label} height=${320} series=${series}
+        bands=${[{ x0: i0, x1: i1 - 1, label: "COVID window", fill: "var(--gilt-tint)" }, { x0: h0, x1: months.length - 1, label: "Held out", fill: "var(--prussian-tint)" }]}
+        xTicks=${[0, months.findIndex(function (m) { return m[0] >= "2018-01"; }), months.findIndex(function (m) { return m[0] >= "2021-01"; }), months.findIndex(function (m) { return m[0] >= "2024-01"; }), months.length - 1]}
+        xLabel=${function (i) { return mLabel(months[i][0]); }} yFmt=${function (y) { return pct(y, 0); }} />
+      <p className="small" style=${{ marginTop: "var(--space-2)" }}>Picks' cumulative return relative to the group (1 + picks) ÷ (1 + group) − 1, net of 0.10% per unit of turnover. The bold line is ${v.label.toLowerCase()}; the faint lines are the other two treatments. Ranges below come from a circular block bootstrap: 4,000 reshuffles of 6-month blocks.</p>
+    </section>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="intro"><h2 className="headline-3">${v.label}</h2></div>
+      <${StatsTable} stats=${v.stats} />
+      <div style=${{ marginTop: "var(--space-5)" }}>
+        ${e(RJ.Button, { variant: "quiet", onClick: function () { setShowNf(!showNf); } }, showNf ? "Hide the run without the acquisition filter" : "Show the run without the acquisition filter")}
+      </div>
+      ${showNf && html`<div style=${{ marginTop: "var(--space-5)" }}>
+        <p className="small" style=${{ marginBottom: "var(--space-3)" }}>My first run let acquisitions count as growth, which inflated anchors for serial buyers. These are its results, as reported, with every other setting the same.</p>
+        <${StatsTable} stats=${bt.no_filter.stats} />
+      </div>`}
+    </section>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="cols2">
+        <div>
+          <h2 className="headline-3" style=${{ marginBottom: "var(--space-5)" }}>What I take from it</h2>
+          <ul className="bullets">
+            <li>A gap to an anchor is not, on its own, a reliable signal in this group. Outside the COVID window, every 90% range crosses zero.</li>
+            <li>COVID flattered the screen in all three treatments, which is why I report it separately rather than let it carry the average.</li>
+            <li>Smoothing fiscal 2020 and 2021 changes results well after the window: outside COVID, ${pct(ar.ex_covid.excess_ann, 1)} becomes ${pct(cn.ex_covid.excess_ann, 1)} a year, because those years feed the growth anchors and margins for years afterwards.</li>
+            <li>The held-out 2025 to 2026 months were positive but too short to mean much. Season 1 is the real test, and the verdicts are about expectations, not trading calls.</li>
+          </ul>
+        </div>
+        <div>
+          <h2 className="headline-3" style=${{ marginBottom: "var(--space-5)" }}>How it was run</h2>
+          <ul className="bullets">${bt.notes.map(function (n, i) { return html`<li key=${i}>${n}</li>`; })}</ul>
+        </div>
+      </div>
+    </section>
+
+    <section className="section" style=${{ marginTop: "var(--space-8)" }}>
+      <div className="intro"><h2 className="headline-3">Who's in it</h2>
+        <p className="small">${bt.universe.length} companies: ${bt.universe.join(", ")}. Left out, with the reason:</p></div>
+      <ul className="bullets">${Object.entries(bt.excluded).map(function (kv) { return html`<li key=${kv[0]}><b>${kv[0]}</b>: ${kv[1]}.</li>`; })}</ul>
+    </section>
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- opener */
+function Opener(props) {
+  var data = props.data, w = data.writeups[0], cos = data.companies;
+  return html`<main><div className="wrap">
+    <section className="section">
+      <div className="intro">
+        <p className="eyebrow">Write-up · ${dLong(w.date)}</p>
+        <h1 className="headline-1">${w.title}</h1>
+        <p className="lead">${w.dek}</p>
+      </div>
+      <div className="essay">
+        ${w.items.map(function (it) {
+          var c = cos[it.ticker];
+          return html`<article key=${it.ticker}>
+            <p className="atlock">${c.ticker} at the lock: implied ${pct(c.lock.implied)} · anchor ${pct(c.anchor.anchor)} · gap ${pts(c.lock.gap)}</p>
+            <h2 className="headline-3">${it.title}</h2>
+            ${it.paras.map(function (p, i) { return html`<p key=${i} className="body">${p}</p>`; })}
+            <p><a href=${"#company-" + it.ticker}>Open ${c.name}</a></p>
+          </article>`;
+        })}
+      </div>
+    </section>
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- code viewer */
+var CODE_FILES = [
+  ["README: how to rebuild", "code/README.txt"], ["engine.py: the model", "code/engine.py.txt"],
+  ["build_live.py: today's valuations", "code/build_live.py.txt"], ["backtest.py: the preseason", "code/backtest.py.txt"],
+  ["backtest_nofilter.py: disclosure run", "code/backtest_nofilter.py.txt"], ["build_site.py: the site's data", "code/build_site.py.txt"],
+  ["build_excel.py: the Excel models", "code/build_excel.py.txt"], ["refresh.py: the daily refresh", "code/refresh.py.txt"],
+  ["engine.js: the sliders' engine", "code/engine.js.txt"], ["parity.cjs: JavaScript vs Python", "code/parity.cjs.txt"],
+];
+function CodeViewer() {
+  var s = useState(0), cur = s[0], setCur = s[1];
+  var t = useState("Loading."), text = t[0], setText = t[1];
+  useEffect(function () {
+    var alive = true; setText("Loading.");
+    fetch(CODE_FILES[cur][1], { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
+      .then(function (x) { if (alive) setText(x); }, function () { if (alive) setText("That file didn't load. Reload the page and try again."); });
+    return function () { alive = false; };
+  }, [cur]);
+  return html`<div style=${{ display: "grid", gap: "var(--space-3)" }}>
+    <label className="small" htmlFor="code-pick">File</label>
+    <select id="code-pick" className="codepick" value=${cur} onChange=${function (ev) { setCur(Number(ev.target.value)); }}>
+      ${CODE_FILES.map(function (f, i) { return html`<option key=${f[1]} value=${i}>${f[0]}</option>`; })}
+    </select>
+    <pre className="formula codeview">${text}</pre>
+    <p className="small">The raw prices, filings and outputs behind every number are published too, as one file: code/data.json.</p>
+  </div>`;
+}
+
+/* ---------------------------------------------------------------- method */
+function Method(props) {
+  var data = props.data, m = data.meta, cos = data.companies;
+  var flagged = Object.values(cos).filter(function (c) { return c.flag; });
+  return html`<main><div className="wrap">
+    <section className="section">
+      <div className="intro">
+        <p className="eyebrow">Method</p>
+        <h1 className="headline-1">How Priced In works</h1>
+        <p className="lead">A discounted cash flow model usually asks what a company is worth. I run it backwards: take the share price as given and solve for the revenue growth that makes the model equal it. Then I ask whether that growth is believable.</p>
+      </div>
+      <div className="method">
+        <section>
+          <h2 className="headline-3">The model (v${m.model_version}, locked Oct 14, 2026)</h2>
+          <div className="formula">${"Revenue(t) = Revenue(t-1) x (1 + g(t))\n" +
+            "g(t) = g for years 1-5, then a straight line from g to gT by year 10\n" +
+            "FCF(t) = Revenue(t) x unlevered FCF margin (held at its trailing level)\n" +
+            "EV = sum of FCF(t) / (1 + WACC)^t  +  FCF(10) x (1 + gT) / (WACC - gT) / (1 + WACC)^10\n" +
+            "Value per share = (EV - debt + cash) / diluted shares\n" +
+            "Implied growth = the g where value per share = price  (bisection on -50% to +100%)"}</div>
+          <p className="body">Bisection works because value rises with g: try the middle of the range, keep the half that still contains the price, and repeat. Forty halvings pin g to a tiny fraction of a basis point. The Excel models do the same thing with formulas, so they need no Goal Seek.</p>
+        </section>
+        <section>
+          <h2 className="headline-3">Inputs</h2>
+          <ul className="bullets">
+            <li><b>Free cash flow:</b> trailing 12-month cash from operations less capex, plus after-tax interest (operating income minus pretax income, floored at zero), so it's the cash available to all investors.</li>
+            <li><b>Cost of equity:</b> CAPM with the 10-year government yield (${pct(m.rf_us, 2)} US, ${pct(m.rf_ca, 2)} Canada on Oct 13, 2026) and Damodaran's ${pct(m.erp, 2)} implied equity risk premium. Beta is bottom-up: the median unlevered 60-month beta of the company's group, relevered for its own debt. Single-stock betas for exchanges were too noisy (TMX measured 0.07).</li>
+            <li><b>Cost of debt:</b> the risk-free rate plus a spread set by debt to EBITDA, after tax at 25% (US) or 26.5% (Canada); weights at market value.</li>
+            <li><b>Terminal growth:</b> US names use 10-year breakeven inflation (${pct(m.breakeven, 2)}) plus half a point, ${pct(m.tg_us, 2)}; Canadian names use the Bank of Canada's 2% target plus half a point, ${pct(m.tg_ca, 2)}.</li>
+          </ul>
+        </section>
+        <section>
+          <h2 className="headline-3">The anchor and the verdict</h2>
+          <p className="body">The anchor averages two outside views: past revenue growth over a window chosen so acquisitions don't count, and analysts' three-year revenue forecast. Implied growth minus the anchor is the gap. Beyond 3 points either way, expectations look too low or too high; I set that band before running any backtest and haven't moved it.</p>
+        </section>
+        <section>
+          <h2 className="headline-3">Fit flags</h2>
+          <p className="body">A reverse DCF on revenue growth fits steady, cash-generative businesses, which is why I chose exchanges and financial data. Where it fits less well, I say so instead of hiding the name:</p>
+          <ul className="bullets">${flagged.map(function (c) { return html`<li key=${c.ticker}><a href=${"#company-" + c.ticker}>${c.name}</a>, ${c.flag.label.toLowerCase()}: ${c.flag.note}</li>`; })}</ul>
+        </section>
+        <section>
+          <h2 className="headline-3">In play</h2>
+          <p className="body">The featured spot on the board changes when the market does. After each close, every company gets a score from these signals, and the highest score takes the spot:</p>
+          <ul className="bullets">${data.inplay.rules.map(function (r) { return html`<li key=${r.kind}><b>${r.kind}:</b> ${r.rule}</li>`; })}</ul>
+        </section>
+        <section>
+          <h2 className="headline-3">Data and refresh</h2>
+          <ul className="bullets">
+            <li>Closing prices come from public quote pages after each US close. When a page lags, I keep the last close I have and show its date rather than guess.</li>
+            <li>Fundamentals stay at their locked values until the next quarterly update, so day-to-day moves in implied growth come from the price alone.</li>
+            <li>The lock used market value divided by shares for prices. For TMX that gave C$54.50 against a C$53.22 close; at the close the gap is wider, so the pick stands.</li>
+            <li>The JavaScript engine on this page and the Python pipeline agree to within 0.0005 percentage points on every company and sensitivity cell.</li>
+          </ul>
+        </section>
+        <section>
+          <h2 className="headline-3">Code and data</h2>
+          <p className="body">Everything that produces these numbers is published with the site: the Python pipeline, the JavaScript engine behind the sliders, the parity test between them, and the data.</p>
+          <${CodeViewer} />
+        </section>
+        <section className="srcs">
+          <h2 className="headline-3">Sources</h2>
+          ${data.sources.map(function (g) { return html`<div key=${g.group}>
+            <h3 className="title" style=${{ marginBottom: "var(--space-3)" }}>${g.group}</h3>
+            <ul>${g.items.map(function (s) { return html`<li key=${s.url}><a href=${s.url} target="_blank" rel="noopener">${s.title}</a><span className="small">${s.note}</span></li>`; })}</ul>
+          </div>`; })}
+        </section>
+      </div>
+    </section>
+  </div></main>`;
+}
+
+/* ---------------------------------------------------------------- app */
+function App() {
+  var d = useData(), route = useRoute();
+  var body;
+  if (d.status === "loading") body = html`<main><div className="wrap boot"><div className="skeleton" aria-hidden="true"></div><p className="small">Loading the board.</p></div></main>`;
+  else if (d.status === "error") body = html`<main><div className="wrap boot"><p className="err" role="alert">The data file didn't load. Reload the page; if it keeps failing, the site is mid-refresh and will be back within a few minutes.</p></div></main>`;
+  else if (route.view === "company") body = html`<${Company} key=${route.ticker} data=${d.data} ticker=${route.ticker} />`;
+  else if (route.view === "season") body = html`<${Season} data=${d.data} />`;
+  else if (route.view === "preseason") body = html`<${Preseason} data=${d.data} />`;
+  else if (route.view === "opener") body = html`<${Opener} data=${d.data} />`;
+  else if (route.view === "method") body = html`<${Method} data=${d.data} />`;
+  else body = html`<${Board} data=${d.data} />`;
+  return html`<${React.Fragment}><${Header} route=${route} />${body}<${Footer} data=${d.data} /></${React.Fragment}>`;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(html`<${App} />`);
+})();
+</script>
