@@ -1,0 +1,76 @@
+{
+  "model_version": "1.0",
+  "locked_at_utc": "2026-10-14T15:57:26Z",
+  "data_as_of_close": "2026-10-13",
+  "entry_rule": "Equal weight at the Oct 14, 2026 close (first close after this lock).",
+  "rebalance_rule": "First trading day of each month: hold the 5 names with the most negative gap, equal weight; deal-price names excluded.",
+  "benchmark": "Equal-weight portfolio of all names except deal-price names, rebalanced on the same dates; local-currency price returns.",
+  "picks": [
+    {
+      "ticker": "X",
+      "name": "TMX Group",
+      "gap": -0.1363,
+      "implied_growth": 0.014,
+      "anchor": 0.1503,
+      "price_oct13": 54.5,
+      "weight": 0.2
+    },
+    {
+      "ticker": "CBOE",
+      "name": "Cboe Global Markets",
+      "gap": -0.1218,
+      "implied_growth": -0.0182,
+      "anchor": 0.1035,
+      "price_oct13": 292.25,
+      "weight": 0.2
+    },
+    {
+      "ticker": "TW",
+      "name": "Tradeweb",
+      "gap": -0.1178,
+      "implied_growth": 0.0293,
+      "anchor": 0.1471,
+      "price_oct13": 109.99,
+      "weight": 0.2
+    },
+    {
+      "ticker": "SSNC",
+      "name": "SS&C Technologies",
+      "gap": -0.1034,
+      "implied_growth": -0.0451,
+      "anchor": 0.0583,
+      "price_oct13": 81.01,
+      "weight": 0.2
+    },
+    {
+      "ticker": "FICO",
+      "name": "Fair Isaac",
+      "gap": -0.0759,
+      "implied_growth": 0.0669,
+      "anchor": 0.1428,
+      "price_oct13": 725.0,
+      "weight": 0.2
+    }
+  ],
+  "universe_gaps": {
+    "ICE": -0.0583,
+    "CME": -0.021,
+    "NDAQ": -0.0197,
+    "CBOE": -0.1218,
+    "X": -0.1363,
+    "TW": -0.1178,
+    "MKTX": 0.0262,
+    "SPGI": 0.0675,
+    "MCO": 0.0683,
+    "MSCI": 0.0174,
+    "MORN": -0.0323,
+    "FDS": -0.0672,
+    "TRI": -0.0162,
+    "BR": -0.0517,
+    "SSNC": -0.1034,
+    "VRSK": -0.0364,
+    "FICO": -0.0759,
+    "EFX": -0.0274,
+    "TRU": 0.007
+  }
+}

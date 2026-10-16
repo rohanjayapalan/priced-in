@@ -1,0 +1,72 @@
+{
+  "all_months": {
+    "label": "All months",
+    "months": 140,
+    "first_held": "2015-02",
+    "last_held": "2026-09",
+    "excess_ann": -0.01157823387876894,
+    "excess_ann_lo90": -0.04491501889720281,
+    "excess_ann_hi90": 0.024410955616355163,
+    "t_stat": -0.5563091273661813,
+    "hit_rate": 0.44285714285714284,
+    "port_cagr": 0.13162646941090528,
+    "bench_cagr": 0.14609153302973543,
+    "spread_ann": -0.02490090431935812
+  },
+  "ex_covid": {
+    "label": "Excluding Feb 2020 to Mar 2021",
+    "months": 126,
+    "first_held": "2015-02",
+    "last_held": "2026-09",
+    "excess_ann": -0.005070955315381468,
+    "excess_ann_lo90": -0.04150188058238402,
+    "excess_ann_hi90": 0.032898590843224704,
+    "t_stat": -0.2303025015154114,
+    "hit_rate": 0.4523809523809524,
+    "port_cagr": 0.12997135607922905,
+    "bench_cagr": 0.13721202874977378,
+    "spread_ann": -0.020849571349798934
+  },
+  "covid_only": {
+    "label": "Feb 2020 to Mar 2021 only",
+    "months": 14,
+    "first_held": "2020-02",
+    "last_held": "2021-03",
+    "excess_ann": -0.07014374094925624,
+    "excess_ann_lo90": -0.14593403777649633,
+    "excess_ann_hi90": -0.00331780184235658,
+    "t_stat": -1.0999886966617491,
+    "hit_rate": 0.35714285714285715,
+    "port_cagr": 0.14663201052931552,
+    "bench_cagr": 0.22919288665347293,
+    "spread_ann": -0.06136290104539086
+  },
+  "train": {
+    "label": "2015 to 2024 (design period)",
+    "months": 119,
+    "first_held": "2015-02",
+    "last_held": "2024-12",
+    "excess_ann": -0.025461576034747406,
+    "excess_ann_lo90": -0.05600921769404309,
+    "excess_ann_hi90": 0.00469178163756358,
+    "t_stat": -1.2378657860009374,
+    "hit_rate": 0.42857142857142855,
+    "port_cagr": 0.17051876105893649,
+    "bench_cagr": 0.19999889338354526,
+    "spread_ann": -0.052723392534527486
+  },
+  "holdout": {
+    "label": "2025 to 2026 (held out)",
+    "months": 21,
+    "first_held": "2025-01",
+    "last_held": "2026-09",
+    "excess_ann": 0.06709403833844238,
+    "excess_ann_lo90": -0.0787933494056622,
+    "excess_ann_hi90": 0.2273966925015931,
+    "t_stat": 0.8997328338899444,
+    "hit_rate": 0.5238095238095238,
+    "port_cagr": -0.0655777567111635,
+    "bench_cagr": -0.11670880221644986,
+    "spread_ann": 0.1327598622332682
+  }
+}
