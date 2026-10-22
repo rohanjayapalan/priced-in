@@ -1,0 +1,79 @@
+name: Daily refresh
+
+on:
+  schedule:
+    - cron: "40 22 * * 1-5"   # 6:40 pm Eastern in summer, 5:40 pm in winter: after the 4:00 pm close
+  workflow_dispatch:           # adds a "Run workflow" button on the Actions tab
+  push:                        # your own commits to the site republish it right away
+    branches: [main]
+    paths: ["site/**", ".github/workflows/**"]
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write            # lets the job commit the updated data file
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: pip install "yfinance>=0.2.50" pandas
+
+      - name: Fetch closing prices
+        run: python pipeline/fetch_prices.py site/data/live.json prices_new.json
+
+      - name: Fetch 8-K filings and news
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: python pipeline/fetch_events.py site/data/live.json events_new.json
+
+      - name: Recompute valuations, In play and the season
+        run: python pipeline/refresh.py site/data/live.json prices_new.json events_new.json
+
+      - name: Commit the new data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data/live.json
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          LAST=$(python -c "import json; print(json.load(open('site/data/live.json'))['meta']['last_close'])")
+          git commit -m "Daily refresh: prices through $LAST"
+          git push || (git pull --rebase && git push)
+
+  publish:
+    needs: refresh
+    if: ${{ !cancelled() && needs.refresh.result != 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write               # lets the job publish to GitHub Pages
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main              # the newest commit, including tonight's data
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site             # the website is everything in the site folder
+
+      - id: deployment
+        uses: actions/deploy-pages@v5

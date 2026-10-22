@@ -1,5 +1,9 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Priced In</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="What growth does each share price imply? Reverse DCFs for 19 exchanges and financial-data companies, checked against history and analysts.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -281,8 +285,12 @@ footer .wrap { display: grid; gap: var(--space-2); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; }
 }
+:root { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
 </style>
-
+</head>
+<body>
 <div id="root">
   <div class="wrap boot">
     <p class="micro">Priced In</p>
@@ -408,18 +416,6 @@ function useMedia(q) {
     return function () { if (mq.removeEventListener) mq.removeEventListener("change", on); else mq.removeListener(on); };
   }, [q]);
   return m;
-}
-function useCapability(name) {
-  var s = useState(undefined), cap = s[0], set = s[1];
-  useEffect(function () {
-    var alive = true;
-    try {
-      var p = window.claude && window.claude.use ? window.claude.use(name) : Promise.resolve(null);
-      p.then(function (v) { if (alive) set(v || null); }, function () { if (alive) set(null); });
-    } catch (err) { set(null); }
-    return function () { alive = false; };
-  }, [name]);
-  return cap;
 }
 
 /* ---------------------------------------------------------------- derived */
@@ -646,7 +642,7 @@ function Footer(props) {
   var m = props.data && props.data.meta;
   return html`<footer><div className="wrap">
     <p className="small">Priced In is a project by Rohan Jayapalan. Prices and filings come from public sources and can be late or wrong. Nothing here is investment advice.</p>
-    ${m && html`<p className="small num">Model v${m.model_version}, locked ${dShort("2026-10-14")}, 2026 (commit ${m.lock_commit}). Prices through the ${dLong(m.last_close)} close; data rebuilt ${m.refreshed_utc.replace("T", " ").replace("Z", " UTC")}.</p>`}
+    ${m && html`<p className="small num">Model v${m.model_version}, locked Oct 14, 2026 at 11:57 a.m. Eastern. Prices through the ${dLong(m.last_close)} close; data rebuilt ${m.refreshed_utc.replace("T", " ").replace("Z", " UTC")}.</p>`}
   </div></footer>`;
 }
 
@@ -731,7 +727,7 @@ function InPlayStrip(props) {
         <span className="micro num">${dLong(ev.date)}</span>
         <span>${ev.label}${ev.url ? html` · <a href=${ev.url} target="_blank" rel="noopener">source</a>` : null}</span>
       </div>`; }) : html`<p className="small">Nothing dated yet.</p>`}
-      ${data.meta.stale && data.meta.stale.length > 0 && html`<p className="small">Prices for ${data.meta.stale.map(function (t) { return t + " (" + dShort(cos[t].live.date) + ")"; }).join(", ")} lag the latest close (${dShort(data.meta.last_close)}): the public pages I read were behind. The next refresh catches them up.</p>`}
+      ${data.meta.stale && data.meta.stale.length > 0 && html`<p className="small">Prices for ${data.meta.stale.map(function (t) { return t + " (" + dShort(cos[t].live.date) + ")"; }).join(", ")} lag the latest close (${dShort(data.meta.last_close)}): the price source was behind. The next refresh catches them up.</p>`}
     </div>
   </div>`;
 }
@@ -896,32 +892,10 @@ function Schedule(props) {
 }
 
 function DownloadModel(props) {
-  var dl = useCapability("downloads");
-  var s = useState(""), msg = s[0], setMsg = s[1];
-  var t = props.ticker, file = "PricedIn_" + t + ".xlsx";
-  if (dl === undefined) return null;
-  if (dl === null) return html`<p className="small">The Excel model for ${t} downloads from this page when it's open in Claude.</p>`;
-  function go() {
-    setMsg("");
-    /* artifacts don't serve .xlsx, so each workbook ships base64-encoded inside a JSON file */
-    fetch("models/PricedIn_" + t + ".json").then(function (r) { if (!r.ok) throw new Error("missing"); return r.json(); })
-      .then(function (j) {
-        var bin = atob(j.b64), bytes = new Uint8Array(bin.length);
-        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        return dl.save({ filename: file, data: bytes });
-      })
-      .then(function () { setMsg("saved"); })
-      .catch(function (err) {
-        var code = err && err.code;
-        if (code === "declined") return;
-        if (code === "rate_limited") return setMsg("Another download prompt is open. Finish it, then try again.");
-        setMsg("The download didn't start. Reload the page and try again.");
-      });
-  }
+  var file = "PricedIn_" + props.ticker + ".xlsx";
   return html`<div className="dl-row">
-    ${e(RJ.Button, { variant: "secondary", onClick: go }, "Download the Excel model")}
+    <a className="rj-btn rj-btn--secondary plain" href=${"models/" + file} download=${file}>Download the Excel model</a>
     <span className="small">Live formulas: inputs, history, WACC, a bisection solver, the DCF, sensitivities and a check against this site.</span>
-    ${msg && msg !== "saved" && html`<span className="err" role="alert">${msg}</span>`}
   </div>`;
 }
 
@@ -1085,7 +1059,7 @@ function Season(props) {
         <p className="eyebrow">Season 1</p>
         <h1 className="headline-1">${live ? "Picks " + pct(sl.port) + ", group " + pct(sl.bench) : "Opens at the Oct 14 close"}</h1>
         <p className="lead">I hold the five names with the most negative gaps, equal weight, and rebalance on the first trading day of each month. The benchmark is an equal-weight portfolio of every name except deal-price names.</p>
-        <p className="small">Picks were locked at 11:57 a.m. Eastern on Oct 14, 2026, before the close, and committed to the project's history (commit ${s.commit}). Price returns in each stock's own currency, no trading costs or dividends.</p>
+        <p className="small">Picks were locked at 11:57 a.m. Eastern on Oct 14, 2026, before the close; the project's code records them in data/out/season_v1_lock.json. Price returns in each stock's own currency, no trading costs or dividends.</p>
       </div>
       ${live ? html`<div className="stack-7">
         <dl className="statrow">
@@ -1267,6 +1241,8 @@ var CODE_FILES = [
   ["build_live.py: today's valuations", "code/build_live.py.txt"], ["backtest.py: the preseason", "code/backtest.py.txt"],
   ["backtest_nofilter.py: disclosure run", "code/backtest_nofilter.py.txt"], ["build_site.py: the site's data", "code/build_site.py.txt"],
   ["build_excel.py: the Excel models", "code/build_excel.py.txt"], ["refresh.py: the daily refresh", "code/refresh.py.txt"],
+  ["fetch_prices.py: nightly closes", "code/fetch_prices.py.txt"], ["fetch_events.py: 8-Ks and news", "code/fetch_events.py.txt"],
+  ["daily-refresh.yml: the nightly workflow", "code/daily-refresh.yml.txt"],
   ["engine.js: the sliders' engine", "code/engine.js.txt"], ["parity.cjs: JavaScript vs Python", "code/parity.cjs.txt"],
 ];
 function CodeViewer() {
@@ -1336,7 +1312,7 @@ function Method(props) {
         <section>
           <h2 className="headline-3">Data and refresh</h2>
           <ul className="bullets">
-            <li>Closing prices come from public quote pages after each US close. When a page lags, I keep the last close I have and show its date rather than guess.</li>
+            <li>After each US close, a scheduled GitHub Actions workflow pulls closing prices from Yahoo Finance (Stooq as a backup), checks SEC EDGAR and Google News for events, re-solves every company and commits the new data file, and the site redeploys. When a source lags, I keep the last close I have and show its date rather than guess.</li>
             <li>Fundamentals stay at their locked values until the next quarterly update, so day-to-day moves in implied growth come from the price alone.</li>
             <li>The lock used market value divided by shares for prices. For TMX that gave C$54.50 against a C$53.22 close; at the close the gap is wider, so the pick stands.</li>
             <li>The JavaScript engine on this page and the Python pipeline agree to within 0.0005 percentage points on every company and sensitivity cell.</li>
@@ -1344,7 +1320,7 @@ function Method(props) {
         </section>
         <section>
           <h2 className="headline-3">Code and data</h2>
-          <p className="body">Everything that produces these numbers is published with the site: the Python pipeline, the JavaScript engine behind the sliders, the parity test between them, and the data.</p>
+          <p className="body">Everything that produces these numbers is public: the Python pipeline, the nightly workflow, the JavaScript engine behind the sliders, the parity test between them, and the data. The full repository is <a href="https://github.com/rohanjayapalan/priced-in">on GitHub</a>.</p>
           <${CodeViewer} />
         </section>
         <section className="srcs">
@@ -1377,3 +1353,5 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(html`<${App} />`);
 })();
 </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 What growth is already in the price? Priced In runs discounted cash flow models backwards for 19 exchanges and financial-data companies in Canada and the US. It takes each share price as given, solves for the five-year revenue growth that price implies, and compares that with an anchor built from past growth and analysts' forecasts.
 
-**Live site:** https://claude.ai/artifact/DS3n4CgaKxaSLzkXDsBKuK, updated after every US close.
+**Live site:** https://rohanjayapalan.github.io/priced-in/, updated after every US close.
 
 ## What's in this repo
 
@@ -46,6 +46,17 @@ Outside COVID the screen didn't beat its group, and every range includes zero. I
 
 Picks were locked on Oct 14, 2026 at 11:57 a.m. Eastern, before the close: TMX Group, Cboe, Tradeweb, SS&C and Fair Isaac. `data/out/season_v1_lock.json` records the picks and the time. The site scores them after every close against an equal-weight portfolio of the 18 names without a pending takeover.
 
+## How it updates
+
+A GitHub Actions workflow (`.github/workflows/daily-refresh.yml`) runs after every US close:
+
+1. `pipeline/fetch_prices.py` gets the day's closing prices from Yahoo Finance, with Stooq as a backup.
+2. `pipeline/fetch_events.py` checks SEC EDGAR for 8-K filings (results, deals, leadership changes) and Google News for bursts of coverage.
+3. `pipeline/refresh.py` re-solves implied growth for every company, rescores In play, updates the Season 1 box score, and rebalances on the first trading day of each month.
+4. The workflow commits `site/data/live.json` and publishes the `site/` folder to GitHub Pages.
+
+Fundamentals stay fixed between quarterly updates, so day-to-day moves in implied growth come from the price alone.
+
 ## Run it
 
 ```bash
@@ -56,13 +67,18 @@ python3 pipeline/backtest_nofilter.py   # the same backtest with acquisitions co
 python3 pipeline/build_site.py          # rebuilds site/data/live.json from data/raw
 python3 pipeline/build_excel.py         # site/models/*.xlsx
 node tests/parity.cjs                   # JavaScript engine vs Python
+
+# the nightly refresh, by hand (the SEC asks for a contact: export SEC_USER_AGENT="Your Name you@example.com")
+python3 pipeline/fetch_prices.py site/data/live.json prices_new.json
+python3 pipeline/fetch_events.py site/data/live.json events_new.json
+python3 pipeline/refresh.py site/data/live.json prices_new.json events_new.json
 ```
 
-To view the site, serve the folder (`python3 -m http.server -d site`) and open http://localhost:8000. The data file in `site/data/` is a copy from the live site, including the daily price updates; `build_site.py` rebuilds it from the raw files instead.
+To view the site, serve the folder (`python3 -m http.server -d site`) and open http://localhost:8000. The data file in `site/data/` is the one the live site reads, so it includes every nightly update; `build_site.py` rebuilds it from the raw files as of the lock.
 
 ## Data sources
 
-Stock Analysis (statistics, financials, price history), Yahoo Finance (price history), the SEC EDGAR XBRL API, US Treasury nominal and real yield curves, the Bank of Canada, Damodaran's implied equity risk premiums, and Kroll's normalized risk-free rate. Free pages sometimes lag; the site keeps the last close it has and shows its date.
+Stock Analysis (statistics, financials, price history), Yahoo Finance and Stooq (price history), SEC EDGAR (XBRL API and 8-K filings), Google News, US Treasury nominal and real yield curves, the Bank of Canada, Damodaran's implied equity risk premiums, and Kroll's normalized risk-free rate. Free pages sometimes lag; the site keeps the last close it has and shows its date.
 
 ## Limitations
 

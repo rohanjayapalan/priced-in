@@ -270,8 +270,9 @@ def build_writeups(comps):
 SOURCES = [
     {"group": "Prices and fundamentals", "items": [
         {"title": "Stock Analysis: statistics, financials and daily price history", "url": "https://stockanalysis.com/stocks/mco/statistics/", "note": "Market caps, shares, trailing revenue and cash flow, analyst forecasts, daily prices. One page per company; Moody's shown."},
-        {"title": "Yahoo Finance: monthly and daily price history", "url": "https://finance.yahoo.com/quote/MCO/history/", "note": "60-month returns for betas, and the backtest's monthly prices. Moody's shown."},
-        {"title": "SEC EDGAR XBRL company concepts", "url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059858/us-gaap/Revenues.json", "note": "Point-in-time revenue, operating cash flow, capex and shares with filing dates, for the backtest. Moody's revenue shown."},
+        {"title": "Yahoo Finance: daily and monthly price history", "url": "https://finance.yahoo.com/quote/MCO/history/", "note": "Daily closes and volume after each close, 60-month returns for betas, and the backtest's monthly prices. Moody's shown."},
+        {"title": "Stooq: daily price history", "url": "https://stooq.com/q/d/?s=mco.us", "note": "Backup for a US close Yahoo Finance misses. Moody's shown."},
+        {"title": "SEC EDGAR XBRL company concepts", "url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001059556/us-gaap/Revenues.json", "note": "Point-in-time revenue, operating cash flow, capex and shares with filing dates, for the backtest. Moody's revenue shown."},
         {"title": "S&P Global recast financials without Mobility (8-K/A exhibit 99.1)", "url": "https://www.sec.gov/Archives/edgar/data/0000064040/000110465926080571/tm2619099d2_ex99-1.htm", "note": "Revenue base for S&P Global after the spin-off."},
     ]},
     {"group": "Rates and risk premium", "items": [
@@ -282,6 +283,8 @@ SOURCES = [
         {"title": "Kroll: US normalized risk-free rate lowered to 2.5% (June 30, 2020)", "url": "https://www.kroll.com/en/reports/cost-of-capital/us-normalized-risk-free-rate-lowered-june-30-2020", "note": "Basis for the COVID rates variant."},
     ]},
     {"group": "Company events", "items": [
+        {"title": "SEC EDGAR: 8-K filings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001059556&type=8-K&dateb=&owner=include&count=40", "note": "Checked after each close for results (item 2.02), deals (1.01, 2.01) and leadership changes (5.02). Moody's shown."},
+        {"title": "Google News search", "url": "https://news.google.com/search?q=%22Moody%27s%22%20when%3A1d", "note": "Daily article counts behind news bursts. Moody's shown."},
         {"title": "ICE to acquire MarketAxess", "url": "https://ir.theice.com/press/news-details/2026/Intercontinental-Exchange-to-Acquire-MarketAxess-Creating-a-Premier-Fixed-Income-Marketplace/default.aspx", "note": "Why MarketAxess carries the deal-price flag."},
         {"title": "MarketAxess definitive proxy (DEFM14A)", "url": "https://www.sec.gov/Archives/edgar/data/0001278021/000119312526395678/d171374ddefm14a.htm", "note": "Shareholder vote on the ICE deal."},
         {"title": "Cboe agrees to sell Cboe Australia and Cboe Canada to TMX", "url": "https://ir.cboe.com/news/news-details/2026/Cboe-Announces-Agreement-to-Sell-Cboe-Australia-and-Cboe-Canada-to-TMX-Group-2026-sskiJDRRf-/default.aspx", "note": "Affects both Cboe's and TMX's revenue base."},
@@ -304,7 +307,8 @@ INPLAY_RULES = [
     {"kind": "Price shock", "rule": "A daily move at least 3 times the stock's normal daily move (a robust standard deviation of the prior 49 days)."},
     {"kind": "Volume spike", "rule": "Daily volume at least 3 times the average of the prior 50 days."},
     {"kind": "Implied-growth swing", "rule": "Implied growth moves at least 2 points over 5 trading days."},
-    {"kind": "Dated event", "rule": "A deal, vote, results day or management change I log with a source."},
+    {"kind": "Dated event", "rule": "Results, deals and leadership changes from 8-K filings (items 2.02, 1.01, 2.01 and 5.02), checked after each close, plus votes and other dates I log with a source."},
+    {"kind": "News burst", "rule": "At least 10 Google News articles about the company in a day and at least 3 times its usual count (the median of the prior 20 days, once there are 10 days of history)."},
     {"kind": "Decay", "rule": "Each signal fades by 15% a trading day, so a name stays in play for about a week unless something new happens."},
 ]
 
