@@ -27,7 +27,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install packages
-        run: pip install "yfinance>=0.2.50" pandas
+        run: pip install "yfinance>=0.2.50" "pandas<3"
 
       - name: Fetch closing prices
         run: python pipeline/fetch_prices.py site/data/live.json prices_new.json
