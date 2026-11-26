@@ -4,6 +4,8 @@ What growth is already in the price? Priced In runs discounted cash flow models 
 
 **Live site:** https://rohanjayapalan.github.io/priced-in/, updated after every US close.
 
+**Excel models:** one workbook per company in [`site/models/`](site/models/), each re-solving with live formulas. Start with [TMX Group](site/models/PricedIn_X.xlsx).
+
 ## What's in this repo
 
 | Folder | What it holds |
